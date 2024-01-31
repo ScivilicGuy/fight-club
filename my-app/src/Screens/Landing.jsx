@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import Button from '@mui/material/Button';
 import { Stack } from '@mui/material';
 import TextField from '@mui/material/TextField';
@@ -7,11 +7,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import makeid from '../util';
+import makeid, { apiFetch } from '../util';
 
 function Landing() {
-  const [open, setOpen] = React.useState(false);
-  const [openInviteCode, setOpenInviteCode] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [openInviteCode, setOpenInviteCode] = useState(false);
+  const [tournament, setTournament] = useState({
+    name: '',
+    desc: '',
+    numTeams: 0,
+    numRounds: 0
+  })
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -25,9 +31,33 @@ function Landing() {
     setOpenInviteCode(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setOpenInviteCode(true)
     handleClose()
+    try {
+      const tournamentId = await apiFetch('create/tournament', 'POST', tournament)
+      alert(tournamentId)
+    } catch (error) {
+      alert(error)
+      console.log(error)
+    }
+
+  }
+
+  const updateName = (e) => {
+    setTournament({ ...tournament, name: e.target.value })
+  }
+
+  const updateDesc = (e) => {
+    setTournament({ ...tournament, desc: e.target.value })
+  }
+
+  const updateTeams = (e) => {
+    setTournament({ ...tournament, numTeams: e.target.value })
+  }
+
+  const updateRounds = (e) => {
+    setTournament({ ...tournament, numRounds: e.target.value })
   }
 
   return (
@@ -61,6 +91,7 @@ function Landing() {
             type="string"
             fullWidth
             variant="standard"
+            onChange={updateName}
           />
           <TextField
             autoFocus
@@ -72,6 +103,7 @@ function Landing() {
             type="string"
             fullWidth
             variant="standard"
+            onChange={updateDesc}
           />
           <TextField
             autoFocus
@@ -83,6 +115,7 @@ function Landing() {
             type="number"
             fullWidth
             variant="standard"
+            onChange={updateTeams}
           />
           <TextField
             autoFocus
@@ -94,6 +127,7 @@ function Landing() {
             type="number"
             fullWidth
             variant="standard"
+            onChange={updateRounds}
           />
         </DialogContent>
         <DialogActions>
