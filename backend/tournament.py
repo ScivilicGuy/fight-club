@@ -20,7 +20,8 @@ def add_tournament(name: string, desc: string, num_teams: int, num_rounds: int):
     conn.commit()
   except:
     pass
-  finally:
-    cur.close()
+  finally: 
+    if cur:
+      cur.close()
 
-  return {tournamentId}
+  return tournamentId
