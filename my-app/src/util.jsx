@@ -1,6 +1,6 @@
 import config from './config.json'
 
-function makeid(length) {
+export const makeid = (length) => {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
@@ -11,8 +11,6 @@ function makeid(length) {
   }
   return result;
 }
-
-export default makeid
 
 const handleRes = async (res) => {
   if (res.status === 400 || res.status === 403) {
@@ -46,7 +44,7 @@ export const apiFetch = async (route, method, data) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: data ? JSON.stringify(data) : null
       })
     }
   } catch {

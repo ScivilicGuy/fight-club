@@ -7,7 +7,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import makeid, { apiFetch } from '../util';
+import { makeid, apiFetch } from '../util';
+
+const CODE_LENGTH = 6
 
 function Landing() {
   const [open, setOpen] = useState(false);
@@ -15,6 +17,7 @@ function Landing() {
   const [tournament, setTournament] = useState({
     name: '',
     desc: '',
+    inviteCode: '',
     numTeams: 0,
     numRounds: 0
   })
@@ -32,11 +35,13 @@ function Landing() {
   };
 
   const handleSubmit = async () => {
+    updateInviteCode()
     setOpenInviteCode(true)
     handleClose()
     try {
-      const tournamentId = await apiFetch('create/tournament', 'POST', tournament)
-      alert(tournamentId)
+      console.log(tournament.numRounds)
+      const res = await apiFetch('create/tournament', 'POST', tournament)
+      alert(`Successfully created tournament #${res.tournamentId}`)
     } catch (error) {
       alert(error)
       console.log(error)
@@ -60,9 +65,13 @@ function Landing() {
     setTournament({ ...tournament, numRounds: e.target.value })
   }
 
+  const updateInviteCode = () => {
+    setTournament({ ...tournament, inviteCode: makeid(CODE_LENGTH)})
+  }
+
   return (
     <>
-      <Stack spacing={2} direction="row">
+      <Stack spacing={2} direction="col">
         <Button variant="outlined" onClick={handleClickOpen}>Create Tournament</Button>
         <Button variant="outlined">Edit Tournament</Button>
         <Button variant="outlined">Start Tournament</Button>
@@ -146,7 +155,7 @@ function Landing() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            {makeid(6)}
+            {tournament.inviteCode}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
