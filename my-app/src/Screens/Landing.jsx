@@ -1,17 +1,12 @@
 import React, {useState} from 'react'
-import Button from '@mui/material/Button';
-import { Stack } from '@mui/material';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import { Button, ButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { makeid, apiFetch } from '../util';
+import { useNavigate } from 'react-router-dom';
 
 const CODE_LENGTH = 6
 
 function Landing() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false);
   const [openInviteCode, setOpenInviteCode] = useState(false);
   const [tournament, setTournament] = useState({
@@ -30,6 +25,17 @@ function Landing() {
     setOpen(false);
   };
 
+  const viewTournaments = () => {
+    navigate('/tournaments')
+  }
+
+  const tourney_btns = [
+    <Button variant="contained" size="large" mb-3 onClick={handleClickOpen}>Create Tournament</Button>,
+    <Button variant="contained" size="large">Edit Tournament</Button>,
+    <Button variant="contained" size="large">Start Tournament</Button>,
+    <Button variant="contained" size="large" onClick={viewTournaments}>View Tournaments</Button>
+  ]
+
   const handleCloseInvite = () => {
     setOpenInviteCode(false);
   };
@@ -39,7 +45,6 @@ function Landing() {
     setOpenInviteCode(true)
     handleClose()
     try {
-      console.log(tournament.numRounds)
       const res = await apiFetch('create/tournament', 'POST', tournament)
       alert(`Successfully created tournament #${res.tournamentId}`)
     } catch (error) {
@@ -71,12 +76,13 @@ function Landing() {
 
   return (
     <>
-      <Stack spacing={2} direction="col">
-        <Button variant="outlined" onClick={handleClickOpen}>Create Tournament</Button>
-        <Button variant="outlined">Edit Tournament</Button>
-        <Button variant="outlined">Start Tournament</Button>
-        <Button variant="outlined">View Tournaments</Button>
-      </Stack>
+      <ButtonGroup
+        orientation="vertical"
+        aria-label="vertical contained button group"
+        variant="contained"
+      >
+        {tourney_btns}
+      </ButtonGroup>
       <Dialog
         open={open}
         onClose={handleClose}

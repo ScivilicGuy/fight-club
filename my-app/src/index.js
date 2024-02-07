@@ -7,6 +7,8 @@ import {
   RouterProvider
 } from "react-router-dom";
 import Landing from './Screens/Landing';
+import ViewTournaments from './Screens/ViewTournaments';
+import Tournament from './Screens/Tournament';
 
 const router = createBrowserRouter([
   {
@@ -14,8 +16,12 @@ const router = createBrowserRouter([
     element: <Landing />
   },
   {
-    path: "/create",
-    element: <div>Create</div>
+    path: "/tournaments",
+    element: <ViewTournaments />
+  },
+  {
+    path: "/tournaments/:tournamentId",
+    element: <Tournament />
   }
 ])
 
