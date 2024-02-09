@@ -3,18 +3,19 @@ from connect import connect
 import psycopg2
 
 
-def add_tournament(name: string, desc: string, inviteCode: string, numTeams: int, numRounds: int):
+def add_tournament(name: string, desc: string, inviteCode: string, numTeams: int, format: string):
   insert_tournament = '''
-    INSERT INTO tournaments (name, description, inviteCode, numTeams, numRounds)
+    INSERT INTO Tournaments (name, description, inviteCode, numTeams, format)
     VALUES (%s, %s, %s, %s, %s)
     RETURNING tournamentId
   '''
 
   tournamentId = -1
   try:
+
     conn = connect()
     cur = conn.cursor()
-    cur.execute(insert_tournament, [name, desc, inviteCode, numTeams, numRounds])
+    cur.execute(insert_tournament, [name, desc, inviteCode, numTeams, format])
     tournamentId = cur.fetchone()[0]
     conn.commit()
   except:
@@ -28,7 +29,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, numTeams: int
 def get_tournaments():
   retrieve_tournaments = '''
     SELECT * 
-    FROM tournaments
+    FROM Tournaments
   '''
 
   tournaments = []
@@ -44,7 +45,7 @@ def get_tournaments():
         'desc': tournament[2],
         'inviteCode': tournament[3],
         'numTeams': tournament[4],
-        'numRounds': tournament[5]
+        'format': tournament[5]
       })
   except:
     pass
@@ -56,8 +57,14 @@ def get_tournaments():
 
 def get_tournament(tournamentId):
   retrieve_tournament = '''
-    SELECT * 
-    FROM tournaments
+    SELECT name, description, inviteCode, numTeams, format
+    FROM Tournaments
+    WHERE (tournamentId = %s)
+  '''
+
+  retrieve_players = '''
+    SELECT playerName
+    FROM Players
     WHERE (tournamentId = %s)
   '''
 
@@ -69,13 +76,19 @@ def get_tournament(tournamentId):
     cur.execute(retrieve_tournament, [tournamentId])
     res = cur.fetchone()
     tournament = {
-      'id': res[0],
-      'name': res[1],
-      'desc': res[2],
-      'inviteCode': res[3],
-      'numTeams': res[4],
-      'numRounds': res[5]
+      'name': res[0],
+      'desc': res[1],
+      'inviteCode': res[2],
+      'numTeams': res[3],
+      'format': res[4],
+      'players': []
     }
+
+    cur.execute(retrieve_players, [tournamentId])
+    res = cur.fetchall()
+    for player in res:
+      tournament['players'].append(player[0])
+  
   except:
     pass
   finally: 
@@ -83,3 +96,37 @@ def get_tournament(tournamentId):
       cur.close()
 
   return tournament
+
+def add_team_to_tournament(code: string, playerName: string):
+  add_player = '''
+    INSERT INTO Players
+    VALUES (%s, %s)
+  '''
+
+  check_code = '''
+    SELECT tournamentId 
+    FROM Tournaments
+    WHERE (inviteCode = %s)
+  '''
+
+  try:
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(check_code, [code])
+    res = cur.fetchone()
+    if not res:
+      raise Exception('No such tournament')
+    
+    tournamentId = res[0]
+    print(tournamentId)
+    cur.execute(add_player, [playerName, tournamentId])
+    conn.commit()
+  except:
+    pass
+  finally: 
+    if cur:
+      cur.close()
+
+  return {}
+
+

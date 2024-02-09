@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import { Button, ButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Button, ButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputLabel, Select, MenuItem, FormControl } from '@mui/material';
 import { makeid, apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,32 +7,55 @@ const CODE_LENGTH = 6
 
 function Landing() {
   const navigate = useNavigate()
-  const [open, setOpen] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
   const [openInviteCode, setOpenInviteCode] = useState(false);
+  const [openJoin, setOpenJoin] = useState(false)
   const [tournament, setTournament] = useState({
     name: '',
     desc: '',
     inviteCode: '',
     numTeams: 0,
-    numRounds: 0
+    format: ''
   })
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const [team, setTeam] = useState({
+    code: '',
+    playerName: ''
+  })
+
+  const handleOpenCreate = () => {
+    setOpenCreate(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseCreate = () => {
+    setOpenCreate(false);
+  };
+
+  const handleOpenJoin = () => {
+    setOpenJoin(true);
+  };
+
+  const handleCloseJoin = () => {
+    setOpenJoin(false);
   };
 
   const viewTournaments = () => {
     navigate('/tournaments')
   }
 
+  const joinTournament = async() => {
+    try {
+      handleCloseJoin()
+      await apiFetch('/tournament/join', 'POST', team)
+      alert('Successfully registered into tournament!')
+    } catch (error) {
+      alert(error)
+    }
+  }
+
   const tourney_btns = [
-    <Button variant="contained" size="large" mb-3 onClick={handleClickOpen}>Create Tournament</Button>,
-    <Button variant="contained" size="large">Edit Tournament</Button>,
-    <Button variant="contained" size="large">Start Tournament</Button>,
+    <Button variant="contained" size="large" gutterbottom onClick={handleOpenCreate}>Create Tournament</Button>,
+    <Button variant="contained" size="large" onClick={handleOpenJoin}>Join Tournament</Button>,
     <Button variant="contained" size="large" onClick={viewTournaments}>View Tournaments</Button>
   ]
 
@@ -40,12 +63,16 @@ function Landing() {
     setOpenInviteCode(false);
   };
 
+  const updateInviteCode = () => {
+    setTournament({ ...tournament, inviteCode: makeid(CODE_LENGTH)})
+  }
+
   const handleSubmit = async () => {
     updateInviteCode()
     setOpenInviteCode(true)
-    handleClose()
+    handleCloseCreate()
     try {
-      const res = await apiFetch('create/tournament', 'POST', tournament)
+      const res = await apiFetch('/tournament/create', 'POST', tournament)
       alert(`Successfully created tournament #${res.tournamentId}`)
     } catch (error) {
       alert(error)
@@ -54,24 +81,18 @@ function Landing() {
 
   }
 
-  const updateName = (e) => {
-    setTournament({ ...tournament, name: e.target.value })
+  const updateTournamentField = (e) => {
+    const { name, value } = e.target
+    setTournament({ ...tournament, [name]: value })
   }
 
-  const updateDesc = (e) => {
-    setTournament({ ...tournament, desc: e.target.value })
+  const updateTeamField = (e) => {
+    const { name, value } = e.target
+    setTeam({ ...team, [name]: value })
   }
 
-  const updateTeams = (e) => {
-    setTournament({ ...tournament, numTeams: e.target.value })
-  }
-
-  const updateRounds = (e) => {
-    setTournament({ ...tournament, numRounds: e.target.value })
-  }
-
-  const updateInviteCode = () => {
-    setTournament({ ...tournament, inviteCode: makeid(CODE_LENGTH)})
+  const updateTournamentFormat = (e) => {
+    setTournament({ ...tournament, format: e.target.value})
   }
 
   return (
@@ -84,8 +105,8 @@ function Landing() {
         {tourney_btns}
       </ButtonGroup>
       <Dialog
-        open={open}
-        onClose={handleClose}
+        open={openCreate}
+        onClose={handleCloseCreate}
         PaperProps={{
           component: 'form'
         }}
@@ -93,8 +114,7 @@ function Landing() {
         <DialogTitle>Create Tournament</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            To subscribe to this website, please enter your email address here. We
-            will send updates occasionally.
+            To create a tournament, please fill out all the fields below.
           </DialogContentText>
           <TextField
             autoFocus
@@ -106,7 +126,7 @@ function Landing() {
             type="string"
             fullWidth
             variant="standard"
-            onChange={updateName}
+            onChange={updateTournamentField}
           />
           <TextField
             autoFocus
@@ -118,41 +138,42 @@ function Landing() {
             type="string"
             fullWidth
             variant="standard"
-            onChange={updateDesc}
+            onChange={updateTournamentField}
           />
           <TextField
             autoFocus
             required
             margin="dense"
             id="num-teams"
-            name="num-teams"
+            name="numTeams"
             label="Number of Teams"
             type="number"
             fullWidth
             variant="standard"
-            onChange={updateTeams}
+            onChange={updateTournamentField}
           />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="num-rounds"
-            name="num-rounds"
-            label="Number of Rounds"
-            type="number"
-            fullWidth
-            variant="standard"
-            onChange={updateRounds}
-          />
+          <FormControl sx={{ m: 2, minWidth: 130 }}>
+            <InputLabel id="tournament-format">Format</InputLabel>
+            <Select
+              labelId="tournament-format"
+              id="format"
+              value={tournament.format}
+              label="Format"
+              onChange={updateTournamentFormat}
+            >
+              <MenuItem value={'Round Robin'}>Round Robin</MenuItem>
+              <MenuItem value={'Elimination'}>Elimination</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleCloseCreate}>Cancel</Button>
           <Button onClick={handleSubmit}>Create</Button>
         </DialogActions>
     </Dialog>
     <Dialog
         open={openInviteCode}
-        onClose={handleClose}
+        onClose={handleCloseCreate}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
@@ -170,6 +191,48 @@ function Landing() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={openJoin}
+        onClose={handleCloseJoin}
+        PaperProps={{
+          component: 'form'
+        }}
+      >
+        <DialogTitle>Join Tournament</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To join a tournament, please fill out all the fields below.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            required
+            margin="dense"
+            id="tournament-code"
+            name="code"
+            label="Invite Code"
+            type="string"
+            fullWidth
+            variant="standard"
+            onChange={updateTeamField}
+          />
+          <TextField
+            autoFocus
+            required
+            margin="dense"
+            id="player-name"
+            name="playerName"
+            label="Summoner Name"
+            type="string"
+            fullWidth
+            variant="standard"
+            onChange={updateTeamField}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseJoin}>Cancel</Button>
+          <Button onClick={joinTournament}>Create</Button>
+        </DialogActions>
+    </Dialog>
    </>
   )
 }

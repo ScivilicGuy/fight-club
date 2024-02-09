@@ -1,8 +1,13 @@
-CREATE TABLE tournaments (
+CREATE TABLE Tournaments (
   tournamentId serial PRIMARY KEY,
   name text NOT NULL,
   description text,
   inviteCode varchar(6) NOT NULL,
   numTeams int NOT NULL,
-  numRounds int NOT NULL
-)
+  format text NOT NULL
+);
+
+CREATE TABLE Players (
+  playerName text PRIMARY KEY,
+  tournamentId int REFERENCES Tournaments(tournamentId)
+);
