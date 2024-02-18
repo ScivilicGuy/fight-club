@@ -54,7 +54,7 @@ function Landing() {
   }
 
   const tourney_btns = [
-    <Button variant="contained" size="large" gutterbottom onClick={handleOpenCreate}>Create Tournament</Button>,
+    <Button variant="contained" size="large" onClick={handleOpenCreate}>Create Tournament</Button>,
     <Button variant="contained" size="large" onClick={handleOpenJoin}>Join Tournament</Button>,
     <Button variant="contained" size="large" onClick={viewTournaments}>View Tournaments</Button>
   ]
@@ -68,7 +68,7 @@ function Landing() {
   }
 
   const handleSubmit = async () => {
-    updateInviteCode()
+    await updateInviteCode()
     setOpenInviteCode(true)
     handleCloseCreate()
     try {

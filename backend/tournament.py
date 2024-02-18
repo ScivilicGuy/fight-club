@@ -1,6 +1,6 @@
 import string
+from util import create_random_pairs
 from connect import connect
-import psycopg2
 
 
 def add_tournament(name: string, desc: string, inviteCode: string, numTeams: int, format: string):
@@ -128,5 +128,50 @@ def add_team_to_tournament(code: string, playerName: string):
       cur.close()
 
   return {}
+
+def create_matches(tournamentId, players):
+  opponent_pairs = create_random_pairs(players)
+
+  add_match = '''
+    INSERT INTO Matches (tournamentId, player1, player2)
+    VALUES (%s, %s, %s)
+  '''
+
+  try:
+    conn = connect()
+    cur = conn.cursor()
+    for pair in opponent_pairs:
+      cur.execute(add_match, [tournamentId, pair[0], pair[1]])
+    conn.commit()
+  except:
+    pass 
+  finally:
+    if cur:
+      cur.close()
+
+def get_matches(tournamentId):
+  get_tournament_matches = '''
+    SELECT player1, player2
+    FROM Matches
+    WHERE (tournamentId = %s)
+  '''
+
+  matches = []
+  try: 
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(get_tournament_matches, [tournamentId])
+    for res in cur.fetchall():
+      matches.append({
+        "player1": res[0],
+        "player2": res[1]
+      })
+  except:
+    pass 
+  finally:
+    if cur:
+      cur.close()
+
+  return matches
 
 

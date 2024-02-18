@@ -1,5 +1,5 @@
 from flask import Flask, request
-from tournament import add_team_to_tournament, add_tournament, get_tournament, get_tournaments
+from tournament import add_team_to_tournament, add_tournament, create_matches, get_matches, get_tournament, get_tournaments
 from flask_cors import CORS
 from json import dumps
 
@@ -38,5 +38,15 @@ def join_tournament():
         join_info["playerName"]
     )
     return {}
+
+@app.route('/tournament/<tournamentId>/start', methods=['POST'])
+def start_tournament(tournamentId):
+    players_info = request.get_json()
+    create_matches(tournamentId, players_info["players"])
+    return {}
+
+@app.route('/tournament/<tournamentId>/matches', methods=['GET'])
+def view_tournament_matches(tournamentId):
+    return {"matches": get_matches(tournamentId)}
 
 CORS(app) 

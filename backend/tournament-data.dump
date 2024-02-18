@@ -11,3 +11,11 @@ CREATE TABLE Players (
   playerName text PRIMARY KEY,
   tournamentId int REFERENCES Tournaments(tournamentId)
 );
+
+CREATE TABLE Matches (
+  matchId serial PRIMARY KEY,
+  tournamentId int REFERENCES Tournaments(tournamentId),
+  player1 text REFERENCES Players(playerName),
+  player2 text REFERENCES Players(playerName),
+  winner text REFERENCES Players(playerName)
+);
