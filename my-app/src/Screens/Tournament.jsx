@@ -10,8 +10,7 @@ function Tournament() {
     name: '',
     desc: '',
     inviteCode: '',
-    numTeams: 0,
-    format: '',
+    state: '',
     players: []
   })
   const [tournamentStarted, setTournamentStarted] = useState(false)
@@ -21,10 +20,20 @@ function Tournament() {
     (async () => {
       const res = await apiFetch(`tournament/${params.tournamentId}`, 'GET')
       setTournament(res.tournament)
+      if (tournament.state === 'IN PROGRESS' || tournament.state === 'COMPLETED') {
+        setTournamentStarted(true)
+        const res = await apiFetch(`tournament/${params.tournamentId}/matches`, 'GET')
+        setMatches(res.matches)
+      }
     })()
-  }, [params.tournamentId])
+  }, [params.tournamentId, tournament.state])
 
   const handleTournamentStart = async () => {
+    if (tournament.players.length % 2 !== 0) {
+      alert('ERROR: Must have an even number of players to start!')
+      return 
+    }
+
     setTournamentStarted(true)
     await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': tournament.players})
     const res = await apiFetch(`tournament/${params.tournamentId}/matches`, 'GET')

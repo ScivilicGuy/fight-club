@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import { Button, ButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputLabel, Select, MenuItem, FormControl } from '@mui/material';
+import { Button, ButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { makeid, apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,8 +14,7 @@ function Landing() {
     name: '',
     desc: '',
     inviteCode: '',
-    numTeams: 0,
-    format: ''
+    state: 'SCHEDULED'
   })
 
   const [team, setTeam] = useState({
@@ -24,12 +23,18 @@ function Landing() {
   })
 
   const handleOpenCreate = () => {
-    setOpenCreate(true);
+    setOpenCreate(true)
   };
 
   const handleCloseCreate = () => {
-    setOpenCreate(false);
+    setOpenCreate(false)
   };
+
+  const handleConfirmedCreate = () => {
+    setOpenCreate(false)
+    updateInviteCode()
+    setOpenInviteCode(true)
+  }
 
   const handleOpenJoin = () => {
     setOpenJoin(true);
@@ -68,9 +73,7 @@ function Landing() {
   }
 
   const handleSubmit = async () => {
-    await updateInviteCode()
-    setOpenInviteCode(true)
-    handleCloseCreate()
+    handleCloseInvite()
     try {
       const res = await apiFetch('/tournament/create', 'POST', tournament)
       alert(`Successfully created tournament #${res.tournamentId}`)
@@ -89,10 +92,6 @@ function Landing() {
   const updateTeamField = (e) => {
     const { name, value } = e.target
     setTeam({ ...team, [name]: value })
-  }
-
-  const updateTournamentFormat = (e) => {
-    setTournament({ ...tournament, format: e.target.value})
   }
 
   return (
@@ -140,35 +139,10 @@ function Landing() {
             variant="standard"
             onChange={updateTournamentField}
           />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="num-teams"
-            name="numTeams"
-            label="Number of Teams"
-            type="number"
-            fullWidth
-            variant="standard"
-            onChange={updateTournamentField}
-          />
-          <FormControl sx={{ m: 2, minWidth: 130 }}>
-            <InputLabel id="tournament-format">Format</InputLabel>
-            <Select
-              labelId="tournament-format"
-              id="format"
-              value={tournament.format}
-              label="Format"
-              onChange={updateTournamentFormat}
-            >
-              <MenuItem value={'Round Robin'}>Round Robin</MenuItem>
-              <MenuItem value={'Elimination'}>Elimination</MenuItem>
-            </Select>
-          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseCreate}>Cancel</Button>
-          <Button onClick={handleSubmit}>Create</Button>
+          <Button onClick={handleConfirmedCreate}>Create</Button>
         </DialogActions>
     </Dialog>
     <Dialog
@@ -186,7 +160,7 @@ function Landing() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseInvite} autoFocus>
+          <Button onClick={handleSubmit} autoFocus>
             Confirm
           </Button>
         </DialogActions>

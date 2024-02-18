@@ -3,23 +3,22 @@ from util import create_random_pairs
 from connect import connect
 
 
-def add_tournament(name: string, desc: string, inviteCode: string, numTeams: int, format: string):
+def add_tournament(name: string, desc: string, inviteCode: string, state: string):
   insert_tournament = '''
-    INSERT INTO Tournaments (name, description, inviteCode, numTeams, format)
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO Tournaments (name, description, inviteCode, state)
+    VALUES (%s, %s, %s, %s)
     RETURNING tournamentId
   '''
 
   tournamentId = -1
   try:
-
     conn = connect()
     cur = conn.cursor()
-    cur.execute(insert_tournament, [name, desc, inviteCode, numTeams, format])
+    cur.execute(insert_tournament, [name, desc, inviteCode, state])
     tournamentId = cur.fetchone()[0]
     conn.commit()
   except:
-    pass
+    print("ERROR: problem occurred when adding tournament")
   finally: 
     if cur:
       cur.close()
@@ -44,11 +43,10 @@ def get_tournaments():
         'name': tournament[1],
         'desc': tournament[2],
         'inviteCode': tournament[3],
-        'numTeams': tournament[4],
-        'format': tournament[5]
+        'state': tournament[4],
       })
   except:
-    pass
+    print("ERROR: problem occurred when retrieving all tournament info")
   finally: 
     if cur:
       cur.close()
@@ -57,7 +55,7 @@ def get_tournaments():
 
 def get_tournament(tournamentId):
   retrieve_tournament = '''
-    SELECT name, description, inviteCode, numTeams, format
+    SELECT name, description, inviteCode, state
     FROM Tournaments
     WHERE (tournamentId = %s)
   '''
@@ -79,8 +77,7 @@ def get_tournament(tournamentId):
       'name': res[0],
       'desc': res[1],
       'inviteCode': res[2],
-      'numTeams': res[3],
-      'format': res[4],
+      'state': res[3],
       'players': []
     }
 
@@ -88,9 +85,8 @@ def get_tournament(tournamentId):
     res = cur.fetchall()
     for player in res:
       tournament['players'].append(player[0])
-  
   except:
-    pass
+    print("ERROR: problem occurred when getting the info for a tournament")
   finally: 
     if cur:
       cur.close()
@@ -122,7 +118,7 @@ def add_team_to_tournament(code: string, playerName: string):
     cur.execute(add_player, [playerName, tournamentId])
     conn.commit()
   except:
-    pass
+    print("ERROR: problem occurred when adding a team to a tournament")
   finally: 
     if cur:
       cur.close()
@@ -137,11 +133,18 @@ def create_matches(tournamentId, players):
     VALUES (%s, %s, %s)
   '''
 
+  update_tournament_state = '''
+    UPDATE Tournaments
+    SET state = 'IN PROGRESS'
+    WHERE (tournamentId = %s)
+  '''
+
   try:
     conn = connect()
     cur = conn.cursor()
     for pair in opponent_pairs:
       cur.execute(add_match, [tournamentId, pair[0], pair[1]])
+    cur.execute(update_tournament_state, [tournamentId])
     conn.commit()
   except:
     pass 

@@ -3,8 +3,7 @@ CREATE TABLE Tournaments (
   name text NOT NULL,
   description text,
   inviteCode varchar(6) NOT NULL,
-  numTeams int NOT NULL,
-  format text NOT NULL
+  state text NOT NULL
 );
 
 CREATE TABLE Players (

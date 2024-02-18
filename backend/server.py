@@ -17,8 +17,7 @@ def create_tournament():
             tournament_info["name"], 
             tournament_info["desc"], 
             tournament_info["inviteCode"],
-            tournament_info["numTeams"], 
-            tournament_info["format"]
+            tournament_info["state"], 
         )
     )}
 
