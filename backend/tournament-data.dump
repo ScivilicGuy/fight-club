@@ -3,7 +3,8 @@ CREATE TABLE Tournaments (
   name text NOT NULL,
   description text,
   inviteCode varchar(6) NOT NULL,
-  state text NOT NULL
+  state text NOT NULL,
+  round int NOT NULL
 );
 
 CREATE TABLE Players (
@@ -16,5 +17,6 @@ CREATE TABLE Matches (
   tournamentId int REFERENCES Tournaments(tournamentId),
   player1 text REFERENCES Players(playerName),
   player2 text REFERENCES Players(playerName),
-  winner text REFERENCES Players(playerName)
+  winner text REFERENCES Players(playerName),
+  round int NOT NULL
 );

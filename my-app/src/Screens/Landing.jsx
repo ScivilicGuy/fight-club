@@ -14,7 +14,8 @@ function Landing() {
     name: '',
     desc: '',
     inviteCode: '',
-    state: 'SCHEDULED'
+    state: 'SCHEDULED',
+    round: 1
   })
 
   const [team, setTeam] = useState({

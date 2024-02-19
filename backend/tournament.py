@@ -3,10 +3,10 @@ from util import create_random_pairs
 from connect import connect
 
 
-def add_tournament(name: string, desc: string, inviteCode: string, state: string):
+def add_tournament(name: string, desc: string, inviteCode: string, state: string, round: int):
   insert_tournament = '''
-    INSERT INTO Tournaments (name, description, inviteCode, state)
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO Tournaments (name, description, inviteCode, state, round)
+    VALUES (%s, %s, %s, %s, %s)
     RETURNING tournamentId
   '''
 
@@ -14,7 +14,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
   try:
     conn = connect()
     cur = conn.cursor()
-    cur.execute(insert_tournament, [name, desc, inviteCode, state])
+    cur.execute(insert_tournament, [name, desc, inviteCode, state, round])
     tournamentId = cur.fetchone()[0]
     conn.commit()
   except:
@@ -44,6 +44,7 @@ def get_tournaments():
         'desc': tournament[2],
         'inviteCode': tournament[3],
         'state': tournament[4],
+        'round': tournament[5]
       })
   except:
     print("ERROR: problem occurred when retrieving all tournament info")
@@ -55,7 +56,7 @@ def get_tournaments():
 
 def get_tournament(tournamentId):
   retrieve_tournament = '''
-    SELECT name, description, inviteCode, state
+    SELECT name, description, inviteCode, state, round
     FROM Tournaments
     WHERE (tournamentId = %s)
   '''
@@ -78,6 +79,7 @@ def get_tournament(tournamentId):
       'desc': res[1],
       'inviteCode': res[2],
       'state': res[3],
+      'round': res[4],
       'players': []
     }
 
@@ -125,17 +127,17 @@ def add_team_to_tournament(code: string, playerName: string):
 
   return {}
 
-def create_matches(tournamentId, players):
+def create_matches(tournamentId, players, round):
   opponent_pairs = create_random_pairs(players)
 
   add_match = '''
-    INSERT INTO Matches (tournamentId, player1, player2)
-    VALUES (%s, %s, %s)
+    INSERT INTO Matches (tournamentId, player1, player2, round)
+    VALUES (%s, %s, %s, %s)
   '''
 
   update_tournament_state = '''
     UPDATE Tournaments
-    SET state = 'IN PROGRESS'
+    SET state = 'IN PROGRESS', round = %s
     WHERE (tournamentId = %s)
   '''
 
@@ -143,8 +145,8 @@ def create_matches(tournamentId, players):
     conn = connect()
     cur = conn.cursor()
     for pair in opponent_pairs:
-      cur.execute(add_match, [tournamentId, pair[0], pair[1]])
-    cur.execute(update_tournament_state, [tournamentId])
+      cur.execute(add_match, [tournamentId, pair[0], pair[1], round])
+    cur.execute(update_tournament_state, [round, tournamentId])
     conn.commit()
   except:
     pass 
@@ -176,5 +178,31 @@ def get_matches(tournamentId):
       cur.close()
 
   return matches
+
+def get_matches_for_round(tournamentId, round):
+  get_tournament_matches = '''
+    SELECT player1, player2
+    FROM Matches
+    WHERE (tournamentId = %s AND round = %s)
+  '''
+
+  matches = []
+  try: 
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(get_tournament_matches, [tournamentId, round])
+    for res in cur.fetchall():
+      matches.append({
+        "player1": res[0],
+        "player2": res[1]
+      })
+  except:
+    pass 
+  finally:
+    if cur:
+      cur.close()
+
+  return matches
+
 
 
