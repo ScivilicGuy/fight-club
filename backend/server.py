@@ -1,5 +1,5 @@
 from flask import Flask, request
-from tournament import add_team_to_tournament, add_tournament, create_matches, get_matches, get_matches_for_round, get_tournament, get_tournaments
+from tournament import add_team_to_tournament, add_tournament, create_matches, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
 from json import dumps
 
@@ -58,5 +58,11 @@ def view_tournament_matches(tournamentId):
 @app.route('/tournament/<tournamentId>/matches/<round>', methods=['GET'])
 def view_tournament_matches_for_round(tournamentId, round):
     return {"matches": get_matches_for_round(tournamentId, round)}
+
+@app.route('/tournament/<tournamentId>/remove/player', methods=['DELETE'])
+def remove_tournament_player(tournamentId):
+    player_info = request.get_json()
+    remove_player_from_tournament(tournamentId, player_info["name"])
+    return {}
 
 CORS(app) 

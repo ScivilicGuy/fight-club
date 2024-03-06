@@ -1,4 +1,5 @@
 import string
+from backend.error import InputError
 from util import create_random_pairs
 from connect import connect
 
@@ -102,7 +103,7 @@ def add_team_to_tournament(code: string, playerName: string):
   '''
 
   check_code = '''
-    SELECT tournamentId 
+    SELECT tournamentId, state 
     FROM Tournaments
     WHERE (inviteCode = %s)
   '''
@@ -112,15 +113,16 @@ def add_team_to_tournament(code: string, playerName: string):
     cur = conn.cursor()
     cur.execute(check_code, [code])
     res = cur.fetchone()
-    if not res:
-      raise Exception('No such tournament')
-    
     tournamentId = res[0]
-    print(tournamentId)
-    cur.execute(add_player, [playerName, tournamentId])
-    conn.commit()
+    state = res[1]
+
+    # can only join tournaments that haven't started
+    if state == "SCHEDULED":
+      cur.execute(add_player, [playerName, tournamentId])
+      conn.commit()
   except:
-    print("ERROR: problem occurred when adding a team to a tournament")
+    print("ERROR: no such tournament")
+    raise InputError(description="No such tournament")
   finally: 
     if cur:
       cur.close()
@@ -203,6 +205,24 @@ def get_matches_for_round(tournamentId, round):
       cur.close()
 
   return matches
+
+def remove_player_from_tournament(tournamentId, playerName):
+  remove_player = '''
+    DELETE FROM Players
+    WHERE (tournamentId = %s AND playerName = %s)
+  '''
+
+  try: 
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(remove_player, [tournamentId, playerName])
+    conn.commit()
+  except:
+    print("Could not remove player from tournament")
+    raise InputError(description="Could not remove player from tournament")
+  finally:
+    if cur:
+      cur.close()
 
 
 
