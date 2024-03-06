@@ -4,7 +4,8 @@ CREATE TABLE Tournaments (
   description text,
   inviteCode varchar(6) NOT NULL,
   state text NOT NULL,
-  round int NOT NULL
+  round int NOT NULL,
+  winner text
 );
 
 CREATE TABLE Players (

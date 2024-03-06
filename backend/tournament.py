@@ -206,6 +206,24 @@ def get_matches_for_round(tournamentId, round):
 
   return matches
 
+def finish_tournament(tournamentId, winner):
+  update_winner = '''
+    UPDATE Tournaments
+    SET state = 'FINISHED', winner = %s
+    WHERE tournamentId = %s
+  '''
+
+  try:
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(update_winner, [winner, tournamentId])
+    conn.commit()
+  except:
+    print('ERROR OCCURRED WHEN PROCESSING TOURNAMENT WINNER')
+  finally:
+    if cur:
+      cur.close()
+
 def remove_player_from_tournament(tournamentId, playerName):
   remove_player = '''
     DELETE FROM Players

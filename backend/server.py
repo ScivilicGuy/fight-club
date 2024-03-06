@@ -45,6 +45,12 @@ def start_tournament(tournamentId):
     create_matches(tournamentId, players_info["players"], 1)
     return {}
 
+@app.route('/tournament/<tournamentId>/end', methods=['PUT'])
+def end_tournament(tournamentId):
+    data = request.get_json()
+    finish_tournament(tournamentId, data["winner"])
+    return {}
+
 @app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
 def start_next_round(tournamentId):
     matches_info = request.get_json()
