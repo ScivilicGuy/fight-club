@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
-import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack } from '@mui/material';
+import { Stack } from '@mui/material';
 import { makeid, apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
 import TournamentBtn from '../Components/TournamentBtn';
+import InviteCodeModal from '../Components/InviteCodeModal';
+import JoinTournamentModal from '../Components/JoinTournamentModal';
+import CreateTournamentModal from '../Components/CreateTournamentModal';
+import { States } from '../TournamentState'
 
 const CODE_LENGTH = 6
+const FIRST_ROUND = 1
 
 function Landing() {
   const navigate = useNavigate()
@@ -15,8 +20,8 @@ function Landing() {
     name: '',
     desc: '',
     inviteCode: '',
-    state: 'SCHEDULED',
-    round: 1
+    state: States.SCHEDULED,
+    round: FIRST_ROUND
   })
 
   const [team, setTeam] = useState({
@@ -50,6 +55,10 @@ function Landing() {
     navigate('/tournaments')
   }
 
+  const viewLeaderboards = () => {
+    navigate('/leaderboard')
+  }
+
   const joinTournament = async() => {
     try {
       handleCloseJoin()
@@ -64,7 +73,8 @@ function Landing() {
   const tourney_btns = [
     <TournamentBtn action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
     <TournamentBtn action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
-    <TournamentBtn action={viewTournaments} title={'View Tournaments'}></TournamentBtn>
+    <TournamentBtn action={viewTournaments} title={'View Tournaments'}></TournamentBtn>,
+    <TournamentBtn action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
   ]
 
   const handleCloseInvite = () => {
@@ -84,7 +94,6 @@ function Landing() {
       alert(error)
       console.log(error)
     }
-
   }
 
   const updateTournamentField = (e) => {
@@ -104,110 +113,9 @@ function Landing() {
           {tourney_btns}
         </Stack>   
       </div>     
-      <Dialog
-        open={openCreate}
-        onClose={handleCloseCreate}
-        PaperProps={{
-          component: 'form'
-        }}
-      >
-        <DialogTitle>Create Tournament</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To create a tournament, please fill out all the fields below.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="name"
-            name="name"
-            label="Tournament Name"
-            type="string"
-            fullWidth
-            variant="standard"
-            onChange={updateTournamentField}
-          />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="desc"
-            name="desc"
-            label="Description"
-            type="string"
-            fullWidth
-            variant="standard"
-            onChange={updateTournamentField}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseCreate}>Cancel</Button>
-          <Button onClick={handleConfirmedCreate}>Create</Button>
-        </DialogActions>
-    </Dialog>
-    <Dialog
-        open={openInviteCode}
-        onClose={handleCloseCreate}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          Invite Code
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {tournament.inviteCode}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleSubmit} autoFocus>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={openJoin}
-        onClose={handleCloseJoin}
-        PaperProps={{
-          component: 'form'
-        }}
-      >
-        <DialogTitle>Join Tournament</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To join a tournament, please fill out all the fields below.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="tournament-code"
-            name="code"
-            label="Invite Code"
-            type="string"
-            fullWidth
-            variant="standard"
-            onChange={updateTeamField}
-          />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="player-name"
-            name="playerName"
-            label="Summoner Name"
-            type="string"
-            fullWidth
-            variant="standard"
-            onChange={updateTeamField}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseJoin}>Cancel</Button>
-          <Button onClick={joinTournament}>Join</Button>
-        </DialogActions>
-    </Dialog>
+      <CreateTournamentModal openCreate={openCreate} handleCloseCreate={handleCloseCreate} updateTournamentField={updateTournamentField} handleConfirmedCreate={handleConfirmedCreate}></CreateTournamentModal>
+      <InviteCodeModal openInviteCode={openInviteCode} handleCloseCreate={handleCloseCreate} inviteCode={tournament.inviteCode} handleSubmit={handleSubmit}></InviteCodeModal>
+      <JoinTournamentModal openJoin={openJoin} handleCloseJoin={handleCloseJoin} updateTeamField={updateTeamField} joinTournament={joinTournament}></JoinTournamentModal>
    </>
   )
 }

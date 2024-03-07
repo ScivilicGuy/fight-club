@@ -9,19 +9,24 @@ import {
 import Landing from './Screens/Landing';
 import ViewTournaments from './Screens/ViewTournaments';
 import Tournament from './Screens/Tournament';
+import Leaderboard from './Screens/Leaderboard';
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <Landing />
   },
   {
-    path: "/tournaments",
+    path: '/tournaments',
     element: <ViewTournaments />
   },
   {
-    path: "/tournaments/:tournamentId",
+    path: '/tournaments/:tournamentId',
     element: <Tournament />
+  },
+  {
+    path: '/leaderboard',
+    element: <Leaderboard />
   }
 ])
 
