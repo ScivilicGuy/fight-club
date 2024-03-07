@@ -1,7 +1,6 @@
 from flask import Flask, request
-from tournament import add_team_to_tournament, add_tournament, create_matches, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
+from tournament import add_team_to_tournament, add_tournament, create_matches, finish_tournament, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
-from json import dumps
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -33,11 +32,10 @@ def view_tournament(tournamentId):
 @app.route('/tournament/join', methods=['POST'])
 def join_tournament():
     join_info = request.get_json()
-    add_team_to_tournament(
+    return {add_team_to_tournament(
         join_info["code"],
         join_info["playerName"]
-    )
-    return {}
+    )}
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
 def start_tournament(tournamentId):

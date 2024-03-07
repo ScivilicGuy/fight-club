@@ -1,5 +1,5 @@
 import string
-from backend.error import InputError
+from error import InputError
 from util import create_random_pairs
 from connect import connect
 
@@ -20,6 +20,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
     conn.commit()
   except:
     print("ERROR: problem occurred when adding tournament")
+    print([name, desc, inviteCode, state, round])
   finally: 
     if cur:
       cur.close()
@@ -45,7 +46,8 @@ def get_tournaments():
         'desc': tournament[2],
         'inviteCode': tournament[3],
         'state': tournament[4],
-        'round': tournament[5]
+        'round': tournament[5],
+        'winner': tournament[6]
       })
   except:
     print("ERROR: problem occurred when retrieving all tournament info")
@@ -57,7 +59,7 @@ def get_tournaments():
 
 def get_tournament(tournamentId):
   retrieve_tournament = '''
-    SELECT name, description, inviteCode, state, round
+    SELECT name, description, inviteCode, state, round, winner
     FROM Tournaments
     WHERE (tournamentId = %s)
   '''
@@ -81,6 +83,7 @@ def get_tournament(tournamentId):
       'inviteCode': res[2],
       'state': res[3],
       'round': res[4],
+      'winner': res[5],
       'players': []
     }
 
@@ -120,6 +123,8 @@ def add_team_to_tournament(code: string, playerName: string):
     if state == "SCHEDULED":
       cur.execute(add_player, [playerName, tournamentId])
       conn.commit()
+    else:
+      raise InputError(description="Tournament has already started/finished")
   except:
     print("ERROR: no such tournament")
     raise InputError(description="No such tournament")
@@ -139,7 +144,7 @@ def create_matches(tournamentId, players, round):
 
   update_tournament_state = '''
     UPDATE Tournaments
-    SET state = 'IN PROGRESS', round = %s
+    SET state = 'STARTED', round = %s
     WHERE (tournamentId = %s)
   '''
 

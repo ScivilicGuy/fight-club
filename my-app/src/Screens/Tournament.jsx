@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom'
 import PlayerList from '../Components/PlayerList';
 import MatchesList from '../Components/MatchesList';
 import TournamentResult from '../Components/TournamentResult';
-import States from '../TournamentState'
+import { States } from '../TournamentState'
 
 function Tournament() {
   const params = useParams()
@@ -15,6 +15,7 @@ function Tournament() {
     inviteCode: '',
     state: '',
     round: 0,
+    winner: '',
     players: []
   })
   const [tournamentState, setTournamentState] = useState('')
@@ -32,7 +33,7 @@ function Tournament() {
         setMatches(res.matches)
       }
     })()
-  }, [])
+  }, [params.tournamentId, tournament.round, tournament.state])
 
   const handleTournamentStart = async () => {
     const numPlayers = tournament.players.length
@@ -72,15 +73,21 @@ function Tournament() {
   }
 
   const renderTourneyState = (tournamentState) => {
-    if (tournamentState === 'SCHEDULED') {
+    if (tournamentState === States.SCHEDULED) {
       return ( 
         <>
-          <Button variant="contained" onClick={handleTournamentStart}>Start Tournament</Button>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem'}}>
+            <Card variant="outlined" sx={{ minWidth: 300 }}>
+              <CardContent>
+                <Typography variant='h6' align='center'>Invite Code: {tournament.inviteCode}</Typography>
+              </CardContent>
+            </Card>
+            <Button variant="contained" onClick={handleTournamentStart}>Start Tournament</Button>
+          </div>
           <PlayerList tournament={tournament}></PlayerList>
         </>
       )
-      
-    } else if (tournamentState === 'IN PROGRESS') {
+    } else if (tournamentState === States.STARTED) {
       let msg = 'Start Next Round'
       if (matches.length === 1) {
         msg = 'Finish Tournament'
@@ -91,8 +98,10 @@ function Tournament() {
           <MatchesList matches={matches} winners={winners} setWinners={setWinners}></MatchesList>
         </>
       )
-    } else if (tournamentState === 'FINISHED') {
-      return <TournamentResult winner={winners[0]}></TournamentResult>
+    } else if (tournamentState === States.FINISHED) {
+      return <TournamentResult winner={tournament.winner}></TournamentResult>
+    } else if (tournamentState === '') {
+      return <></>
     } else {
       alert('Invalid tournament state')
     }
