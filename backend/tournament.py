@@ -254,5 +254,7 @@ def remove_player_from_tournament(tournamentId, playerName):
     if cur:
       cur.close()
 
+  return {}
+
 
 

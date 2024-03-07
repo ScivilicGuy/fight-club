@@ -19,6 +19,7 @@ function Tournament() {
     players: []
   })
   const [tournamentState, setTournamentState] = useState('')
+  const [players, setPlayers] = useState([])
   const [matches, setMatches] = useState([])
   const [winners, setWinners] = useState({})
   const [round, setRound] = useState(1)
@@ -28,7 +29,8 @@ function Tournament() {
       try {
         const res = await apiFetch(`tournament/${params.tournamentId}`, 'GET')
         setTournament(res.tournament)
-        setTournamentState(tournament.state)
+        setTournamentState(res.tournament.state)
+        setPlayers(res.tournament.players)
         if (tournament.state === States.STARTED) {
           const res = await apiFetch(`tournament/${params.tournamentId}/matches/${tournament.round}`, 'GET')
           setMatches(res.matches)
@@ -88,6 +90,16 @@ function Tournament() {
     }
   }
 
+  const removePlayer = async (player) => {
+    try {
+      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
+      const newPlayersArray = players.filter(i => i !== player)
+      setPlayers(newPlayersArray)
+    } catch (error) {
+      alert(error)
+    }
+  }
+
   const renderTourneyState = (tournamentState) => {
     if (tournamentState === States.SCHEDULED) {
       return ( 
@@ -100,7 +112,7 @@ function Tournament() {
             </Card>
             <Button variant="contained" onClick={handleTournamentStart}>Start Tournament</Button>
           </div>
-          <PlayerList tournament={tournament}></PlayerList>
+          <PlayerList players={players} removePlayer={removePlayer}></PlayerList>
         </>
       )
     } else if (tournamentState === States.STARTED) {

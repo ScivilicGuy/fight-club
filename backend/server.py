@@ -71,7 +71,7 @@ def view_tournament_matches_for_round(tournamentId, round):
 
 @app.route('/tournament/<tournamentId>/remove/player', methods=['DELETE'])
 def remove_tournament_player(tournamentId):
-    player_info = request.get_json()
-    return remove_player_from_tournament(tournamentId, player_info["name"])
+    data = request.get_json()
+    return remove_player_from_tournament(tournamentId, data["player"])
 
 CORS(app) 
