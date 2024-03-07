@@ -1,5 +1,5 @@
 import string
-from error import InputError
+from error import AccessError, InputError
 from util import create_random_pairs
 from connect import connect
 
@@ -20,7 +20,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
     conn.commit()
   except:
     print("ERROR: problem occurred when adding tournament")
-    print([name, desc, inviteCode, state, round])
+    raise InputError(description="ERROR: problem occurred when adding tournament")
   finally: 
     if cur:
       cur.close()
@@ -51,6 +51,7 @@ def get_tournaments():
       })
   except:
     print("ERROR: problem occurred when retrieving all tournament info")
+    raise AccessError("ERROR: problem occurred when retrieving all tournament info")
   finally: 
     if cur:
       cur.close()
@@ -93,6 +94,7 @@ def get_tournament(tournamentId):
       tournament['players'].append(player[0])
   except:
     print("ERROR: problem occurred when getting the info for a tournament")
+    raise AccessError(description="ERROR: problem occurred when getting the info for a tournament")
   finally: 
     if cur:
       cur.close()
@@ -125,7 +127,7 @@ def add_team_to_tournament(code: string, playerName: string):
       conn.commit()
     else:
       raise InputError(description="Tournament has already started/finished")
-  except:
+  except IndexError:
     print("ERROR: no such tournament")
     raise InputError(description="No such tournament")
   finally: 
@@ -156,7 +158,8 @@ def create_matches(tournamentId, players, round):
     cur.execute(update_tournament_state, [round, tournamentId])
     conn.commit()
   except:
-    pass 
+    print("ERROR: problem occurred when generating matches") 
+    raise InputError(description="ERROR: problem occurred when generating matches")
   finally:
     if cur:
       cur.close()
@@ -179,7 +182,7 @@ def get_matches(tournamentId):
         "player2": res[1]
       })
   except:
-    pass 
+    raise AccessError(description="ERROR: problem occurred when retrieving matches")
   finally:
     if cur:
       cur.close()
@@ -204,7 +207,7 @@ def get_matches_for_round(tournamentId, round):
         "player2": res[1]
       })
   except:
-    pass 
+    raise AccessError(description="ERROR: problem occurred when retrieving matches")
   finally:
     if cur:
       cur.close()
@@ -224,7 +227,7 @@ def finish_tournament(tournamentId, winner):
     cur.execute(update_winner, [winner, tournamentId])
     conn.commit()
   except:
-    print('ERROR OCCURRED WHEN PROCESSING TOURNAMENT WINNER')
+    raise InputError(description="ERROR: problem occurred when setting the tournament winner")
   finally:
     if cur:
       cur.close()

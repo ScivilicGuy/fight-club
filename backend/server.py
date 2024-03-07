@@ -1,13 +1,25 @@
+from json import dumps
 from flask import Flask, request
 from tournament import add_team_to_tournament, add_tournament, create_matches, finish_tournament, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
 
+def defaultHandler(err):
+    try:
+        response = err.get_response()
+        response.data = dumps({
+            'code': err.code,
+            'name': 'System Error',
+            'message': err.description
+        })
+        response.content_type = 'application/json'
+        return response
+    except:
+        raise Exception(str(err)) from err
+    
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+app.config['TRAP_HTTP_EXCEPTIONS'] = True
+app.register_error_handler(Exception, defaultHandler)
 
 @app.route('/tournament/create', methods=['POST'])
 def create_tournament():
@@ -31,16 +43,13 @@ def view_tournament(tournamentId):
 
 @app.route('/tournament/join', methods=['POST'])
 def join_tournament():
-    join_info = request.get_json()
-    return {add_team_to_tournament(
-        join_info["code"],
-        join_info["playerName"]
-    )}
+    data = request.get_json()
+    return add_team_to_tournament(data["code"], data["playerName"])
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
 def start_tournament(tournamentId):
-    players_info = request.get_json()
-    create_matches(tournamentId, players_info["players"], 1)
+    data = request.get_json()
+    create_matches(tournamentId, data["players"], data["round"])
     return {}
 
 @app.route('/tournament/<tournamentId>/end', methods=['PUT'])

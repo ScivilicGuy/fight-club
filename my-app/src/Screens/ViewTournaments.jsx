@@ -9,8 +9,12 @@ function ViewTournaments() {
 
   useEffect(() => {
     (async() => {
-      const res = await apiFetch('tournaments', 'GET')
-      setTournaments(res.tournaments)
+      try {
+        const res = await apiFetch('tournaments', 'GET')
+        setTournaments(res.tournaments)
+      } catch (error) {
+        alert(error) 
+      }
     })()
   }, [])
 

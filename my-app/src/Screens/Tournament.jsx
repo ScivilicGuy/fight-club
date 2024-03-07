@@ -14,7 +14,7 @@ function Tournament() {
     desc: '',
     inviteCode: '',
     state: '',
-    round: 0,
+    round: 1,
     winner: '',
     players: []
   })
@@ -25,12 +25,16 @@ function Tournament() {
 
   useEffect(() => {
     (async () => {
-      const res = await apiFetch(`tournament/${params.tournamentId}`, 'GET')
-      setTournament(res.tournament)
-      setTournamentState(tournament.state)
-      if (tournament.state === States.STARTED) {
-        const res = await apiFetch(`tournament/${params.tournamentId}/matches/${tournament.round}`, 'GET')
-        setMatches(res.matches)
+      try {
+        const res = await apiFetch(`tournament/${params.tournamentId}`, 'GET')
+        setTournament(res.tournament)
+        setTournamentState(tournament.state)
+        if (tournament.state === States.STARTED) {
+          const res = await apiFetch(`tournament/${params.tournamentId}/matches/${tournament.round}`, 'GET')
+          setMatches(res.matches)
+        }
+      } catch (error) {
+        alert(error)
       }
     })()
   }, [params.tournamentId, tournament.round, tournament.state])
@@ -43,14 +47,22 @@ function Tournament() {
     }
 
     setTournamentState(States.STARTED)
-    await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': tournament.players})
-    const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round}`, 'GET')
-    setMatches(res.matches)
+    try {
+      await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': tournament.players, 'round': tournament.round})
+      const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round}`, 'GET')
+      setMatches(res.matches)
+    } catch (error) {
+      alert(error)
+    }
   }
 
   const handleTournamentFinish = async (winner) => {
-    await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': winner})
-    setTournamentState(States.FINISHED)
+    try {
+      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': winner})
+      setTournamentState(States.FINISHED)
+    } catch (error) {
+      alert(error)
+    }
   }
 
   const handleNextRound = async () => {
@@ -60,16 +72,20 @@ function Tournament() {
       return
     }
 
-    if (Object.keys(winners).length % 2 !== 0) {
-      alert('ERROR: Must have an even number of players to start!')
+    if (Object.keys(winners).length !== tournament.players.length / (2 * tournament.round)) {
+      alert('ERROR: All matches must have a winner!')
       return 
     }
 
-    await apiFetch(`tournament/${params.tournamentId}/next/round`, 'POST', {'players': Object.values(winners), 'round': round + 1})
-    const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round + 1}`, 'GET')
-    setMatches(res.matches)
-    setRound(round + 1)
-    setWinners({})
+    try {
+      await apiFetch(`tournament/${params.tournamentId}/next/round`, 'POST', {'players': Object.values(winners), 'round': round + 1})
+      const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round + 1}`, 'GET')
+      setMatches(res.matches)
+      setRound(round + 1)
+      setWinners({})
+    } catch (error) {
+      alert(error)
+    }
   }
 
   const renderTourneyState = (tournamentState) => {

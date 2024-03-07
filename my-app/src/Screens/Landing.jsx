@@ -56,6 +56,7 @@ function Landing() {
       alert('Successfully registered into tournament!')
     } catch (error) {
       alert(error)
+      console.log(error)
     }
   }
 
@@ -205,7 +206,7 @@ function Landing() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseJoin}>Cancel</Button>
-          <Button onClick={joinTournament}>Create</Button>
+          <Button onClick={joinTournament}>Join</Button>
         </DialogActions>
     </Dialog>
    </>
