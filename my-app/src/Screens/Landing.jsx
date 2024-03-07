@@ -1,7 +1,8 @@
-import React, {useState} from 'react'
-import { Button, ButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import React, { useState } from 'react'
+import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack } from '@mui/material';
 import { makeid, apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
+import TournamentBtn from '../Components/TournamentBtn';
 
 const CODE_LENGTH = 6
 
@@ -61,9 +62,9 @@ function Landing() {
   }
 
   const tourney_btns = [
-    <Button variant="contained" size="large" onClick={handleOpenCreate}>Create Tournament</Button>,
-    <Button variant="contained" size="large" onClick={handleOpenJoin}>Join Tournament</Button>,
-    <Button variant="contained" size="large" onClick={viewTournaments}>View Tournaments</Button>
+    <TournamentBtn action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
+    <TournamentBtn action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
+    <TournamentBtn action={viewTournaments} title={'View Tournaments'}></TournamentBtn>
   ]
 
   const handleCloseInvite = () => {
@@ -98,13 +99,11 @@ function Landing() {
 
   return (
     <>
-      <ButtonGroup
-        orientation="vertical"
-        aria-label="vertical contained button group"
-        variant="contained"
-      >
-        {tourney_btns}
-      </ButtonGroup>
+      <div style={{ position: 'absolute', top: '30%', left: '30%' }}>
+        <Stack spacing={8}>
+          {tourney_btns}
+        </Stack>   
+      </div>     
       <Dialog
         open={openCreate}
         onClose={handleCloseCreate}
