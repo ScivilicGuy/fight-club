@@ -163,6 +163,8 @@ def create_matches(tournamentId, players, round):
   finally:
     if cur:
       cur.close()
+  
+  return {}
 
 def get_matches(tournamentId):
   get_tournament_matches = '''
@@ -231,6 +233,8 @@ def finish_tournament(tournamentId, winner):
   finally:
     if cur:
       cur.close()
+  
+  return {}
 
 def remove_player_from_tournament(tournamentId, playerName):
   remove_player = '''

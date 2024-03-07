@@ -49,20 +49,17 @@ def join_tournament():
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
 def start_tournament(tournamentId):
     data = request.get_json()
-    create_matches(tournamentId, data["players"], data["round"])
-    return {}
+    return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/end', methods=['PUT'])
 def end_tournament(tournamentId):
     data = request.get_json()
-    finish_tournament(tournamentId, data["winner"])
-    return {}
+    return finish_tournament(tournamentId, data["winner"])
 
 @app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
 def start_next_round(tournamentId):
     matches_info = request.get_json()
-    create_matches(tournamentId, matches_info["players"], matches_info["round"])
-    return {}
+    return create_matches(tournamentId, matches_info["players"], matches_info["round"])
 
 @app.route('/tournament/<tournamentId>/matches', methods=['GET'])
 def view_tournament_matches(tournamentId):
@@ -75,7 +72,6 @@ def view_tournament_matches_for_round(tournamentId, round):
 @app.route('/tournament/<tournamentId>/remove/player', methods=['DELETE'])
 def remove_tournament_player(tournamentId):
     player_info = request.get_json()
-    remove_player_from_tournament(tournamentId, player_info["name"])
-    return {}
+    return remove_player_from_tournament(tournamentId, player_info["name"])
 
 CORS(app) 
