@@ -2,6 +2,7 @@ import string
 from error import AccessError, InputError
 from util import create_random_pairs
 from connect import connect
+from tournament_states import States
 
 # Creates a tournament in the database with given inputs
 # tournamentId field is auto-generated (serial) and the winner field is set to empty string
@@ -125,6 +126,8 @@ def add_player_to_tournament(code: string, playerName: string):
     WHERE (inviteCode = %s)
   '''
 
+  state = None
+
   try:
     conn = connect()
     cur = conn.cursor()
@@ -134,16 +137,19 @@ def add_player_to_tournament(code: string, playerName: string):
     state = res[1]
 
     # can only join tournaments that haven't started
-    if state == "SCHEDULED":
+    if state == States.SCHEDULED.name:
       cur.execute(add_player, [playerName, tournamentId])
       conn.commit()
-    else:
-      raise InputError(description="Tournament has already started/finished")
   except TypeError:
     raise InputError(description="Invalid code")
+  except:
+    raise InputError(description="Player is currently registered in another tournament")
   finally: 
     if cur:
       cur.close()
+  
+  if state != States.SCHEDULED.name:
+    raise InputError(description="Tournament has already started/finished")
 
   return {}
 

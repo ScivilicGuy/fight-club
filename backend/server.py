@@ -33,7 +33,7 @@ def create_tournament():
         raise InputError(description="All fields should be non-empty to create a tournament")
     
     # a new tournament should be in a scheduled state only
-    if data["state"] != States.SCHEDULED:
+    if data["state"] != States.SCHEDULED.name:
         raise InputError(description="Can only create a scheduled tournament")
     
     return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"])}
@@ -49,22 +49,52 @@ def view_tournament(tournamentId):
 @app.route('/tournament/join', methods=['POST'])
 def join_tournament():
     data = request.get_json()
+    has_empty = any(i == "" for i in [data["code"], data["playerName"]])
+    
+    # all given inputs should be non-empty
+    if has_empty:
+        raise InputError(description="All fields should be non-empty to create a tournament")
+    
     return add_player_to_tournament(data["code"], data["playerName"])
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
 def start_tournament(tournamentId):
     data = request.get_json()
+
+    if not isinstance(tournamentId, int):
+        raise InputError(description="Invalid tournament id")
+    
+    if not isinstance(data["round"], int):
+        raise InputError(description="Invalid round")
+    
+    if not data["players"] or len(data["players"]) % 2 != 0:
+        raise InputError(description="There must be an even number of players to start")
+    
+    return create_matches(tournamentId, data["players"], data["round"])
+
+@app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
+def start_next_round(tournamentId):
+    data = request.get_json()
+
+    if not isinstance(tournamentId, int):
+        raise InputError(description="Invalid tournament id")
+    
+    if not isinstance(data["round"], int):
+        raise InputError(description="Invalid round")
+    
+    if not data["players"] or len(data["players"]) % 2 != 0:
+        raise InputError(description="There must be an even number of players to start")
+    
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/end', methods=['PUT'])
 def end_tournament(tournamentId):
     data = request.get_json()
-    return finish_tournament(tournamentId, data["winner"])
 
-@app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
-def start_next_round(tournamentId):
-    matches_info = request.get_json()
-    return create_matches(tournamentId, matches_info["players"], matches_info["round"])
+    if not data["winner"]:
+        raise InputError(description="Invalid winner - winner must not be empty")
+    
+    return finish_tournament(tournamentId, data["winner"])
 
 @app.route('/tournament/<tournamentId>/matches', methods=['GET'])
 def view_tournament_matches(tournamentId):
@@ -77,6 +107,10 @@ def view_tournament_matches_for_round(tournamentId, round):
 @app.route('/tournament/<tournamentId>/remove/player', methods=['DELETE'])
 def remove_tournament_player(tournamentId):
     data = request.get_json()
+
+    if not isinstance(tournamentId, int):
+        raise InputError(description="Invalid tournament id")
+    
     return remove_player_from_tournament(tournamentId, data["player"])
 
 @app.route('/leaderboard', methods=['GET'])

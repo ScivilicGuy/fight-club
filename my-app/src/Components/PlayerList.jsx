@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Typography, Card, CardContent, CardActionArea } from '@mui/material'
+import { Typography, Card, CardActionArea } from '@mui/material'
 import RemovePlayerConfirmation from './RemovePlayerConfirmation';
 
 function PlayerList(props) {
