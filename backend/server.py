@@ -1,7 +1,9 @@
 from json import dumps
 from flask import Flask, request
-from tournament import add_team_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
+from error import InputError
+from tournament import add_player_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
+from tournament_states import States
 
 def defaultHandler(err):
     try:
@@ -23,15 +25,18 @@ app.register_error_handler(Exception, defaultHandler)
 
 @app.route('/tournament/create', methods=['POST'])
 def create_tournament():
-    tournament_info = request.get_json()
-    return {'tournamentId': (add_tournament(
-            tournament_info["name"], 
-            tournament_info["desc"], 
-            tournament_info["inviteCode"],
-            tournament_info["state"], 
-            tournament_info["round"]
-        )
-    )}
+    data = request.get_json()
+    has_empty = any(i == "" for i in [data["name"], data["inviteCode"], data["state"]])
+    
+    # all given inputs should be non-empty (except for description)
+    if has_empty:
+        raise InputError(description="All fields should be non-empty to create a tournament")
+    
+    # a new tournament should be in a scheduled state only
+    if data["state"] != States.SCHEDULED:
+        raise InputError(description="Can only create a scheduled tournament")
+    
+    return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"])}
 
 @app.route('/tournaments', methods=['GET'])
 def view_tournaments():
@@ -44,7 +49,7 @@ def view_tournament(tournamentId):
 @app.route('/tournament/join', methods=['POST'])
 def join_tournament():
     data = request.get_json()
-    return add_team_to_tournament(data["code"], data["playerName"])
+    return add_player_to_tournament(data["code"], data["playerName"])
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
 def start_tournament(tournamentId):

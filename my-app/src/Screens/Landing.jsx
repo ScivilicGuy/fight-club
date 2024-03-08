@@ -9,7 +9,6 @@ import CreateTournamentModal from '../Components/CreateTournamentModal';
 import { States } from '../TournamentState'
 
 const CODE_LENGTH = 6
-const FIRST_ROUND = 1
 
 function Landing() {
   const navigate = useNavigate()
@@ -20,8 +19,7 @@ function Landing() {
     name: '',
     desc: '',
     inviteCode: '',
-    state: States.SCHEDULED,
-    round: FIRST_ROUND
+    state: States.SCHEDULED
   })
 
   const [team, setTeam] = useState({

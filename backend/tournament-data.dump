@@ -1,10 +1,10 @@
 CREATE TABLE Tournaments (
   tournamentId serial PRIMARY KEY,
   name text NOT NULL,
-  description text,
+  description text DEFAULT '',
   inviteCode varchar(6) NOT NULL,
   state text NOT NULL,
-  round int NOT NULL,
+  round int DEFAULT 1,
   winner text DEFAULT ''
 );
 

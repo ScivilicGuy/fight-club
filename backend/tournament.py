@@ -3,11 +3,13 @@ from error import AccessError, InputError
 from util import create_random_pairs
 from connect import connect
 
-
-def add_tournament(name: string, desc: string, inviteCode: string, state: string, round: int):
+# Creates a tournament in the database with given inputs
+# tournamentId field is auto-generated (serial) and the winner field is set to empty string
+# Errors can occur if any inputs are empty (they must all exist)
+def add_tournament(name: string, desc: string, inviteCode: string, state: string):
   insert_tournament = '''
-    INSERT INTO Tournaments (name, description, inviteCode, state, round)
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO Tournaments (name, description, inviteCode, state)
+    VALUES (%s, %s, %s, %s)
     RETURNING tournamentId
   '''
 
@@ -15,7 +17,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
   try:
     conn = connect()
     cur = conn.cursor()
-    cur.execute(insert_tournament, [name, desc, inviteCode, state, round])
+    cur.execute(insert_tournament, [name, desc, inviteCode, state])
     tournamentId = cur.fetchone()[0]
     conn.commit()
   except:
@@ -27,6 +29,8 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
 
   return tournamentId
 
+# retrieve data for all existing tournaments 
+# returns a list of dictionaries
 def get_tournaments():
   retrieve_tournaments = '''
     SELECT * 
@@ -58,6 +62,9 @@ def get_tournaments():
 
   return tournaments
 
+# retrieve data for a select tournament (including players that have joined it)
+# returns a dictionary
+# error occurs if tournament does not exist
 def get_tournament(tournamentId):
   retrieve_tournament = '''
     SELECT name, description, inviteCode, state, round, winner
@@ -92,8 +99,9 @@ def get_tournament(tournamentId):
     res = cur.fetchall()
     for player in res:
       tournament['players'].append(player[0])
+  except TypeError:
+    raise InputError(description="ERROR: tournament does not exist")
   except:
-    print("ERROR: problem occurred when getting the info for a tournament")
     raise AccessError(description="ERROR: problem occurred when getting the info for a tournament")
   finally: 
     if cur:
@@ -101,7 +109,11 @@ def get_tournament(tournamentId):
 
   return tournament
 
-def add_team_to_tournament(code: string, playerName: string):
+# adds a player to a given tournament (identified by input code)
+# errors occur if the tournament has already started/finished
+# or the player has already joined a separate tournament
+# or the code is invalid
+def add_player_to_tournament(code: string, playerName: string):
   add_player = '''
     INSERT INTO Players
     VALUES (%s, %s)
@@ -127,15 +139,16 @@ def add_team_to_tournament(code: string, playerName: string):
       conn.commit()
     else:
       raise InputError(description="Tournament has already started/finished")
-  except IndexError:
-    print("ERROR: no such tournament")
-    raise InputError(description="No such tournament")
+  except TypeError:
+    raise InputError(description="Invalid code")
   finally: 
     if cur:
       cur.close()
 
   return {}
 
+# generates a list of matches between pairs of players that is stored in the db
+# updates tournament state since it is called at the start of every new round (new round = old round + 1)
 def create_matches(tournamentId, players, round):
   opponent_pairs = create_random_pairs(players)
 
@@ -166,6 +179,7 @@ def create_matches(tournamentId, players, round):
   
   return {}
 
+# retrieves all matches for a tournament
 def get_matches(tournamentId):
   get_tournament_matches = '''
     SELECT player1, player2
@@ -191,6 +205,7 @@ def get_matches(tournamentId):
 
   return matches
 
+# retrieves all matches for a given tournament for a particular round
 def get_matches_for_round(tournamentId, round):
   get_tournament_matches = '''
     SELECT player1, player2
@@ -216,17 +231,27 @@ def get_matches_for_round(tournamentId, round):
 
   return matches
 
+# sets tournament state to finished and updates the winner
+# removes players from finished tournament
 def finish_tournament(tournamentId, winner):
   update_winner = '''
     UPDATE Tournaments
     SET state = 'FINISHED', winner = %s
     WHERE tournamentId = %s
   '''
+  
+  # remove players from finished tournament 
+  # enables them to join another tournament
+  delete_tourney_players = '''
+    DELETE FROM Players
+    WHERE (tournamentId = %s)
+  '''
 
   try:
     conn = connect()
     cur = conn.cursor()
     cur.execute(update_winner, [winner, tournamentId])
+    cur.execute(delete_tourney_players, [tournamentId])
     conn.commit()
   except:
     raise InputError(description="ERROR: problem occurred when setting the tournament winner")
@@ -236,6 +261,7 @@ def finish_tournament(tournamentId, winner):
   
   return {}
 
+# removes player from given tournament
 def remove_player_from_tournament(tournamentId, playerName):
   remove_player = '''
     DELETE FROM Players
@@ -256,6 +282,7 @@ def remove_player_from_tournament(tournamentId, playerName):
 
   return {}
 
+# retrieves the players with the most tournament wins (top 10)
 def generate_leaderboard():
   get_tournament_winners = '''
     SELECT winner 
@@ -277,6 +304,7 @@ def generate_leaderboard():
     if cur:
       cur.close()
   
+  # count number of wins for each player
   leaderboard = {}
   for winner in tournament_winners:
     if winner in leaderboard:
@@ -284,7 +312,8 @@ def generate_leaderboard():
     else:
       leaderboard[winner] = 1
 
-  sorted_top_ten_leaderboard = sorted(leaderboard.items(), key=lambda x:x[1], reverse=True)
+  # sort players to find top 10
+  sorted_top_ten_leaderboard = sorted(leaderboard.items(), key=lambda x:x[1], reverse=True)[:10]
   return sorted_top_ten_leaderboard
 
 
