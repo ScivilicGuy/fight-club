@@ -1,26 +1,28 @@
 import React from 'react'
-import { Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
+import { Table, TableHead, TableBody, TableRow, TableCell, Box } from '@mui/material';
 
 function LeaderboardTable({ data }) {
   return (
-    <Table>
-      <TableHead>
-        <TableRow>
-          {Object.keys(data[0]).map((key) => (
-            <TableCell key={key}>{key}</TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.map((row, index) => (
-          <TableRow key={index}>
-            {Object.values(row).map((value, index) => (
-              <TableCell key={index}>{value}</TableCell>
+    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Table style={{ width: '50%' }}>
+        <TableHead>
+          <TableRow>
+            {Object.keys(data[0]).map((key) => (
+              <TableCell key={key} sx={{ fontSize: '1.5rem' }}>{key}</TableCell>
             ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHead>
+        <TableBody>
+          {data.map((row, index) => (
+            <TableRow key={index}>
+              {Object.values(row).map((value, index) => (
+                <TableCell key={index} sx={{ fontSize: '1.5rem' }}>{value}</TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Box>
   )
 }
 
