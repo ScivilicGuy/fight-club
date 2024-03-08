@@ -1,25 +1,37 @@
 import React from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
-function InviteCodeModal(props) {
+function InviteCodeModal({ open, handleClose, inviteCode }) {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(inviteCode)
+      .then(() => {
+        handleClose()
+        console.log('Text copied to clipboard');
+      })
+      .catch((error) => {
+        console.error('Failed to copy text: ', error);
+      });
+  };
+
   return (
     <Dialog
-      open={props.openInviteCode}
-      onClose={props.handleCloseCreate}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="dialog-title"
+      aria-describedby="dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
+      <DialogTitle id="dialog-title">
         Invite Code
       </DialogTitle>
       <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          {props.inviteCode}
+        <DialogContentText id="dialog-description">
+          {inviteCode}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.handleSubmit} autoFocus>
-          Confirm
+        <Button onClick={handleClose}>Close</Button>
+        <Button onClick={handleCopy} autoFocus>
+          Copy
         </Button>
       </DialogActions>
     </Dialog>
