@@ -101,9 +101,9 @@ def get_tournament(tournamentId):
     for player in res:
       tournament['players'].append(player[0])
   except TypeError:
-    raise InputError(description="ERROR: tournament does not exist")
+    raise InputError(description="Tournament does not exist")
   except:
-    raise AccessError(description="ERROR: problem occurred when getting the info for a tournament")
+    raise AccessError(description="Problem occurred when getting the info for a tournament")
   finally: 
     if cur:
       cur.close()
@@ -143,7 +143,7 @@ def add_player_to_tournament(code: string, playerName: string):
   except TypeError:
     raise InputError(description="Invalid code")
   except:
-    raise InputError(description="Player is currently registered in another tournament")
+    raise InputError(description="Cannot join same tournament twice")
   finally: 
     if cur:
       cur.close()
@@ -176,7 +176,7 @@ def create_matches(tournamentId, players, round):
       cur.execute(add_match, [tournamentId, pair[0], pair[1], round])
     cur.execute(update_tournament_state, [round, tournamentId])
     conn.commit()
-  except:
+  except TypeError:
     print("ERROR: problem occurred when generating matches") 
     raise InputError(description="ERROR: problem occurred when generating matches")
   finally:
@@ -238,28 +238,19 @@ def get_matches_for_round(tournamentId, round):
   return matches
 
 # sets tournament state to finished and updates the winner
-# removes players from finished tournament
 def finish_tournament(tournamentId, winner):
   update_winner = '''
     UPDATE Tournaments
     SET state = 'FINISHED', winner = %s
     WHERE tournamentId = %s
   '''
-  
-  # remove players from finished tournament 
-  # enables them to join another tournament
-  delete_tourney_players = '''
-    DELETE FROM Players
-    WHERE (tournamentId = %s)
-  '''
 
   try:
     conn = connect()
     cur = conn.cursor()
     cur.execute(update_winner, [winner, tournamentId])
-    cur.execute(delete_tourney_players, [tournamentId])
     conn.commit()
-  except:
+  except TypeError:
     raise InputError(description="ERROR: problem occurred when setting the tournament winner")
   finally:
     if cur:
@@ -318,6 +309,7 @@ def generate_leaderboard():
     else:
       leaderboard[winner] = 1
 
+  print(leaderboard)
   # sort players to find top 10
   sorted_top_ten_leaderboard = sorted(leaderboard.items(), key=lambda x:x[1], reverse=True)[:10]
   return sorted_top_ten_leaderboard

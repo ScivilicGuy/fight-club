@@ -12,7 +12,7 @@ function Leaderboards() {
         const res = await apiFetch('leaderboard', 'GET')
         const formatted_data = []
         for (let i = 0; i < res.leaderboard.length; i++) {
-          let entry = res.leaderboard[0]
+          let entry = res.leaderboard[i]
           formatted_data.push({
             '#': i+1,
             Player: entry[0],

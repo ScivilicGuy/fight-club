@@ -6,7 +6,10 @@ export default function ToggleButtons(props) {
   const [selection, setSelection] = React.useState('');
 
   const handleSelection = (event, newSelection) => {
-    setSelection(newSelection);
+    if (newSelection !== null) {
+      setSelection(newSelection);
+    }
+    
   };
 
   return (

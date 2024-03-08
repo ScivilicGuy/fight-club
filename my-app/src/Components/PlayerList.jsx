@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Typography, Card, CardActionArea } from '@mui/material'
+import { Typography, Card, CardActionArea, Grid, Box } from '@mui/material'
 import RemovePlayerConfirmation from './RemovePlayerConfirmation';
 
 function PlayerList(props) {
@@ -13,7 +13,6 @@ function PlayerList(props) {
 
   const handleClose = (e) => {
     setOpen(false);
-    console.log(e.target.textContent)
     if (e.target.textContent === 'Confirm') {
       props.removePlayer(player)
     }
@@ -22,13 +21,26 @@ function PlayerList(props) {
   return (
     <>
       <RemovePlayerConfirmation open={open} handleClose={handleClose}></RemovePlayerConfirmation>
-      {props.players.map((player) => (
-        <Card>
-          <CardActionArea onClick={() => handleClickOpen(player)}>
-            <Typography variant='h6' align='center'>{player}</Typography>
-          </CardActionArea>
-        </Card>
-      ))} 
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Grid 
+          container
+          spacing={2}
+          alignItems="center"
+          justifyContent='center'
+          sx={{ width: '80%' }}
+        >
+          {props.players.map((player) => (
+            <Grid key={player} item xs={4}>
+              <Card variant='outlined' sx={{ padding: '1rem' }}> 
+                <CardActionArea onClick={() => handleClickOpen(player)}>
+                  <Typography variant='h5' align='center'>{player}</Typography>
+                </CardActionArea>
+              </Card>
+          </Grid>
+          ))} 
+        </Grid>
+      </Box>
+      
     </>
   )
 }

@@ -61,7 +61,7 @@ def join_tournament():
 def start_tournament(tournamentId):
     data = request.get_json()
 
-    if not isinstance(tournamentId, int):
+    if not tournamentId.isdigit():
         raise InputError(description="Invalid tournament id")
     
     if not isinstance(data["round"], int):
@@ -76,7 +76,7 @@ def start_tournament(tournamentId):
 def start_next_round(tournamentId):
     data = request.get_json()
 
-    if not isinstance(tournamentId, int):
+    if not tournamentId.isdigit():
         raise InputError(description="Invalid tournament id")
     
     if not isinstance(data["round"], int):
@@ -108,7 +108,7 @@ def view_tournament_matches_for_round(tournamentId, round):
 def remove_tournament_player(tournamentId):
     data = request.get_json()
 
-    if not isinstance(tournamentId, int):
+    if not tournamentId.isdigit():
         raise InputError(description="Invalid tournament id")
     
     return remove_player_from_tournament(tournamentId, data["player"])

@@ -1,0 +1,27 @@
+CREATE TABLE Tournaments (
+  tournamentId serial PRIMARY KEY,
+  name text NOT NULL,
+  description text DEFAULT '',
+  inviteCode varchar(6) NOT NULL,
+  state text NOT NULL,
+  round int DEFAULT 1,
+  winner text
+);
+
+CREATE TABLE Players (
+  playerName text,
+  tournamentId int REFERENCES Tournaments(tournamentId),
+  PRIMARY KEY (playerName, tournamentId)
+);
+
+CREATE TABLE Matches (
+  matchId serial PRIMARY KEY,
+  tournamentId int REFERENCES Tournaments(tournamentId),
+  player1 text NOT NULL,
+  player2 text NOT NULL,
+  winner text,
+  round int NOT NULL,
+  FOREIGN KEY (tournamentId, player1) REFERENCES Players(tournamentId, playerName),
+  FOREIGN KEY (tournamentId, player2) REFERENCES Players(tournamentId, playerName),
+  FOREIGN KEY (tournamentId, winner) REFERENCES Players(tournamentId, playerName)
+);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Typography, Card, CardContent, Button } from '@mui/material'
+import { Typography, Card, CardContent, Button, Box } from '@mui/material'
 import { apiFetch } from '../util'
 import { useParams } from 'react-router-dom'
 import PlayerList from '../Components/PlayerList';
@@ -39,7 +39,7 @@ function Tournament() {
         alert(error)
       }
     })()
-  }, [params.tournamentId, tournament.round, tournament.state])
+  }, [params.tournamentId, tournament.round, tournament.state, tournamentState])
 
   const handleTournamentStart = async () => {
     const numPlayers = tournament.players.length
@@ -122,7 +122,9 @@ function Tournament() {
       }
       return (
         <>
-          <Button variant="contained" onClick={handleNextRound}>{msg}</Button>
+          <Box sx={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <Button variant="contained" onClick={handleNextRound}>{msg}</Button>
+          </Box>
           <MatchesList matches={matches} winners={winners} setWinners={setWinners}></MatchesList>
         </>
       )
