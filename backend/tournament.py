@@ -256,5 +256,38 @@ def remove_player_from_tournament(tournamentId, playerName):
 
   return {}
 
+def generate_leaderboard():
+  get_tournament_winners = '''
+    SELECT winner 
+    FROM Tournaments
+    WHERE winner != ''
+  '''
+
+  tournament_winners = []
+  try: 
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(get_tournament_winners, [])
+    res = cur.fetchall()
+    for i in res:
+      tournament_winners.append(i[0])
+  except:
+    raise InputError(description="Problem occurred when getting tournament winners")
+  finally:
+    if cur:
+      cur.close()
+  
+  leaderboard = {}
+  for winner in tournament_winners:
+    if winner in leaderboard:
+      leaderboard[winner] += 1
+    else:
+      leaderboard[winner] = 1
+
+  sorted_top_ten_leaderboard = sorted(leaderboard.items(), key=lambda x:x[1], reverse=True)
+  return sorted_top_ten_leaderboard
+
+
+
 
 

@@ -1,6 +1,6 @@
 from json import dumps
 from flask import Flask, request
-from tournament import add_team_to_tournament, add_tournament, create_matches, finish_tournament, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
+from tournament import add_team_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
 
 def defaultHandler(err):
@@ -73,5 +73,9 @@ def view_tournament_matches_for_round(tournamentId, round):
 def remove_tournament_player(tournamentId):
     data = request.get_json()
     return remove_player_from_tournament(tournamentId, data["player"])
+
+@app.route('/leaderboard', methods=['GET'])
+def leaderboard():
+    return {"leaderboard": generate_leaderboard()}
 
 CORS(app) 
