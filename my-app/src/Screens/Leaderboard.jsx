@@ -19,7 +19,6 @@ function Leaderboards() {
             Wins: entry[1]
           })
         }
-        console.log(formatted_data)
         setLeaderboard(formatted_data)
       } catch (error) {
         alert(error) 
@@ -29,7 +28,7 @@ function Leaderboards() {
 
   return (
     <>
-      <Typography variant="h2" align='center' gutterBottom>
+      <Typography variant="h3" align='center' gutterBottom>
         Leaderboard
       </Typography>
       {leaderboard.length > 0 && <LeaderboardTable data={leaderboard}></LeaderboardTable>}
