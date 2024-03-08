@@ -17,7 +17,7 @@ root.render(
       <Routes>
         <Route exact path="/" element={<Landing />} />
         <Route exact path="/tournaments" element={<ViewTournaments />} />
-        <Route exact path="//tournaments/:tournamentId" element={<Tournament />} />
+        <Route exact path="/tournaments/:tournamentId" element={<Tournament />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>
     </BrowserRouter>

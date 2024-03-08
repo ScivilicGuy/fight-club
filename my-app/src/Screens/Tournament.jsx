@@ -6,6 +6,7 @@ import PlayerList from '../Components/PlayerList';
 import MatchesList from '../Components/MatchesList';
 import TournamentResult from '../Components/TournamentResult';
 import { States } from '../TournamentState'
+import { powerOf2 } from '../util';
 
 function Tournament() {
   const params = useParams()
@@ -42,15 +43,15 @@ function Tournament() {
   }, [params.tournamentId, tournament.round, tournament.state, tournamentState])
 
   const handleTournamentStart = async () => {
-    const numPlayers = tournament.players.length
-    if ((numPlayers % 2 !== 0) || (numPlayers === 0)) {
-      alert('ERROR: Must have an even number of players to start!')
+    const numPlayers = players.length
+    if (!powerOf2(numPlayers) || (numPlayers === 0)) {
+      alert('ERROR: Number of players must be a power of 2!')
       return 
     }
 
     setTournamentState(States.STARTED)
     try {
-      await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': tournament.players, 'round': tournament.round})
+      await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': players, 'round': tournament.round})
       const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round}`, 'GET')
       setMatches(res.matches)
     } catch (error) {
@@ -68,15 +69,15 @@ function Tournament() {
   }
 
   const handleNextRound = async () => {
+    if (Object.keys(winners).length !== players.length / (2 ** round)) {
+      alert('ERROR: All matches must have a winner!')
+      return 
+    }
+
     if (Object.keys(winners).length === 1) {
       alert(`WINNER: ${winners[0]}`)
       handleTournamentFinish(winners[0])
       return
-    }
-
-    if (Object.keys(winners).length !== tournament.players.length / (2 * tournament.round)) {
-      alert('ERROR: All matches must have a winner!')
-      return 
     }
 
     try {

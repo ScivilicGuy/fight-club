@@ -7,13 +7,15 @@ import InviteCodeModal from '../Components/InviteCodeModal';
 import JoinTournamentModal from '../Components/JoinTournamentModal';
 import CreateTournamentModal from '../Components/CreateTournamentModal';
 import { States } from '../TournamentState'
+import SuccessAlert from '../Components/SuccessAlert';
 
 const CODE_LENGTH = 6
 
 function Landing() {
   const navigate = useNavigate()
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openInviteCode, setOpenInviteCode] = useState(false);
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openCreate, setOpenCreate] = useState(false)
+  const [openInviteCode, setOpenInviteCode] = useState(false)
   const [openJoin, setOpenJoin] = useState(false)
   const [tournament, setTournament] = useState({
     name: '',
@@ -61,7 +63,7 @@ function Landing() {
     try {
       handleCloseJoin()
       await apiFetch('/tournament/join', 'POST', team)
-      alert('Successfully registered into tournament!')
+      setOpenSuccess(true)
     } catch (error) {
       alert(error)
       console.log(error)
@@ -87,7 +89,7 @@ function Landing() {
     handleCloseInvite()
     try {
       const res = await apiFetch('/tournament/create', 'POST', tournament)
-      alert(`Successfully created tournament #${res.tournamentId}`)
+      navigate(`/tournaments/${res.tournamentId}`)
     } catch (error) {
       alert(error)
       console.log(error)
@@ -106,7 +108,8 @@ function Landing() {
 
   return (
     <>
-      <div style={{ position: 'absolute', top: '30%', left: '30%' }}>
+      <SuccessAlert open={openSuccess} setOpen={setOpenSuccess} msg={'Successfully joined tournament!'}/>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
         <Stack spacing={8}>
           {tourney_btns}
         </Stack>   
