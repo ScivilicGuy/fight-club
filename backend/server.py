@@ -4,6 +4,7 @@ from error import InputError
 from tournament import add_player_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
 from tournament_states import States
+from util import is_power_of_2
 
 def defaultHandler(err):
     try:
@@ -67,8 +68,8 @@ def start_tournament(tournamentId):
     if not isinstance(data["round"], int):
         raise InputError(description="Invalid round")
     
-    if not data["players"] or len(data["players"]) % 2 != 0:
-        raise InputError(description="There must be an even number of players to start")
+    if not is_power_of_2(len(data["players"])):
+        raise InputError(description="Number of players must be a power of 2 to start")
     
     return create_matches(tournamentId, data["players"], data["round"])
 
@@ -83,7 +84,7 @@ def start_next_round(tournamentId):
         raise InputError(description="Invalid round")
     
     if not data["players"] or len(data["players"]) % 2 != 0:
-        raise InputError(description="There must be an even number of players to start")
+        raise InputError(description="Every match must have a winner")
     
     return create_matches(tournamentId, data["players"], data["round"])
 

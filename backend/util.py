@@ -13,3 +13,6 @@ def create_random_pairs(input_list):
     pairs.append(pair)
 
   return pairs
+
+def is_power_of_2(n):
+  return (n & (n-1) == 0) and n > 1

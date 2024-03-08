@@ -52,6 +52,6 @@ export const apiFetch = async (route, method, data) => {
   return handleRes(res)
 }
 
-export const powerOf2 = (v) => {
-  return v && !(v & (v - 1));
+export const powerOf2 = (n) => {
+  return (n > 1) && !(n & (n - 1));
 }

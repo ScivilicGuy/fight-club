@@ -8,6 +8,7 @@ import TournamentResult from '../Components/TournamentResult';
 import { States } from '../TournamentState'
 import { powerOf2 } from '../util';
 import InviteCodeModal from '../Components/InviteCodeModal';
+import SnackBarAlert from '../Components/SnackBarAlert';
 
 function Tournament() {
   const params = useParams()
@@ -26,6 +27,10 @@ function Tournament() {
   const [winners, setWinners] = useState({})
   const [round, setRound] = useState(1)
   const [openInviteCode, setOpenInviteCode] = useState(false)
+  const [openError, setOpenError] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
 
   useEffect(() => {
     (async () => {
@@ -39,10 +44,11 @@ function Tournament() {
           setMatches(res.matches)
         }
       } catch (error) {
-        alert(error)
+        setOpenError(true)
+        setErrorMsg(error.message)
       }
     })()
-  }, [params.tournamentId, tournament.round, tournament.state, tournamentState])
+  }, [params.tournamentId, tournament.round, tournament.state])
 
   const handleOpenInviteCode = () => {
     setOpenInviteCode(true)
@@ -54,9 +60,9 @@ function Tournament() {
 
   const handleTournamentStart = async () => {
     const numPlayers = players.length
-    if (!powerOf2(numPlayers) || (numPlayers === 0)) {
-      alert('ERROR: Number of players must be a power of 2!')
-      return 
+    if (!powerOf2(numPlayers)) {
+      setOpenError(true)
+      setErrorMsg('ERROR: Number of players must be a power of 2!')
     }
 
     setTournamentState(States.STARTED)
@@ -65,7 +71,8 @@ function Tournament() {
       const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round}`, 'GET')
       setMatches(res.matches)
     } catch (error) {
-      alert(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
   }
 
@@ -73,19 +80,23 @@ function Tournament() {
     try {
       await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': winner})
       setTournamentState(States.FINISHED)
+      setTournament({...tournament, winner: winner})
     } catch (error) {
-      alert(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
   }
 
   const handleNextRound = async () => {
     if (Object.keys(winners).length !== players.length / (2 ** round)) {
-      alert('ERROR: All matches must have a winner!')
+      setOpenError(true)
+      setErrorMsg('All matches must have a winner!')
       return 
     }
 
     if (Object.keys(winners).length === 1) {
-      alert(`WINNER: ${winners[0]}`)
+      setOpenSuccess(true)
+      setSuccessMsg(`Winner is ${winners[0]}`)
       handleTournamentFinish(winners[0])
       return
     }
@@ -97,7 +108,8 @@ function Tournament() {
       setRound(round + 1)
       setWinners({})
     } catch (error) {
-      alert(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
   }
 
@@ -107,7 +119,8 @@ function Tournament() {
       const newPlayersArray = players.filter(i => i !== player)
       setPlayers(newPlayersArray)
     } catch (error) {
-      alert(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
   }
 
@@ -142,12 +155,15 @@ function Tournament() {
     } else if (tournamentState === '') {
       return <></>
     } else {
-      alert('Invalid tournament state')
+      setOpenError(true)
+      setErrorMsg('Invalid tournament state')
     }
   }
 
   return (
     <>
+      <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
+      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <Typography variant='h2' align='center' gutterBottom>{tournament.name}</Typography>
       {renderTourneyState(tournamentState)}
       <InviteCodeModal open={openInviteCode} handleClose={handleCloseInviteCode} inviteCode={tournament.inviteCode} />
