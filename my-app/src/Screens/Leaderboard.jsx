@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { apiFetch } from '../util'
-import { Card, CardContent, Typography, CardActionArea } from '@mui/material'
+import { Typography } from '@mui/material'
 import LeaderboardTable from '../Components/LeaderboardTable'
 
 function Leaderboards() {
@@ -32,7 +32,7 @@ function Leaderboards() {
       <Typography variant="h2" align='center' gutterBottom>
         Leaderboard
       </Typography>
-      <LeaderboardTable data={leaderboard}></LeaderboardTable>
+      {leaderboard.length > 0 && <LeaderboardTable data={leaderboard}></LeaderboardTable>}
     </>
   )
 }
