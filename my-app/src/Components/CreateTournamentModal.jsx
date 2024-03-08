@@ -1,11 +1,11 @@
 import React from 'react'
 import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
-function CreateTournamentModal(props) {
+function CreateTournamentModal({ openCreate, handleCloseCreate, handleSubmit, updateTournamentField }) {
   return (
     <Dialog
-        open={props.openCreate}
-        onClose={props.handleCloseCreate}
+        open={openCreate}
+        onClose={handleCloseCreate}
         PaperProps={{
           component: 'form'
         }}
@@ -25,7 +25,7 @@ function CreateTournamentModal(props) {
             type="string"
             fullWidth
             variant="standard"
-            onChange={props.updateTournamentField}
+            onChange={updateTournamentField}
           />
           <TextField
             autoFocus
@@ -37,12 +37,12 @@ function CreateTournamentModal(props) {
             type="string"
             fullWidth
             variant="standard"
-            onChange={props.updateTournamentField}
+            onChange={updateTournamentField}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={props.handleCloseCreate}>Cancel</Button>
-          <Button onClick={props.handleConfirmedCreate}>Create</Button>
+          <Button onClick={handleCloseCreate}>Cancel</Button>
+          <Button onClick={handleSubmit}>Create</Button>
         </DialogActions>
     </Dialog>
   )

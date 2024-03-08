@@ -7,20 +7,22 @@ import InviteCodeModal from '../Components/InviteCodeModal';
 import JoinTournamentModal from '../Components/JoinTournamentModal';
 import CreateTournamentModal from '../Components/CreateTournamentModal';
 import { States } from '../TournamentState'
-import SuccessAlert from '../Components/SuccessAlert';
+import SnackBarAlert from '../Components/SnackBarAlert';
 
 const CODE_LENGTH = 6
 
 function Landing() {
   const navigate = useNavigate()
   const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
   const [openCreate, setOpenCreate] = useState(false)
-  const [openInviteCode, setOpenInviteCode] = useState(false)
   const [openJoin, setOpenJoin] = useState(false)
   const [tournament, setTournament] = useState({
     name: '',
     desc: '',
-    inviteCode: '',
+    inviteCode: makeid(CODE_LENGTH),
     state: States.SCHEDULED
   })
 
@@ -36,12 +38,6 @@ function Landing() {
   const handleCloseCreate = () => {
     setOpenCreate(false)
   };
-
-  const handleConfirmedCreate = () => {
-    setOpenCreate(false)
-    updateInviteCode()
-    setOpenInviteCode(true)
-  }
 
   const handleOpenJoin = () => {
     setOpenJoin(true);
@@ -64,9 +60,11 @@ function Landing() {
       handleCloseJoin()
       await apiFetch('/tournament/join', 'POST', team)
       setOpenSuccess(true)
+      setSuccessMsg('Successfully joined tournament!')
+      setTeam({})
     } catch (error) {
-      alert(error)
-      console.log(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
   }
 
@@ -77,22 +75,14 @@ function Landing() {
     <TournamentBtn action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
   ]
 
-  const handleCloseInvite = () => {
-    setOpenInviteCode(false);
-  };
-
-  const updateInviteCode = () => {
-    setTournament({ ...tournament, inviteCode: makeid(CODE_LENGTH)})
-  }
-
   const handleSubmit = async () => {
-    handleCloseInvite()
     try {
+      handleCloseCreate()
       const res = await apiFetch('/tournament/create', 'POST', tournament)
       navigate(`/tournaments/${res.tournamentId}`)
     } catch (error) {
-      alert(error)
-      console.log(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
   }
 
@@ -108,14 +98,14 @@ function Landing() {
 
   return (
     <>
-      <SuccessAlert open={openSuccess} setOpen={setOpenSuccess} msg={'Successfully joined tournament!'}/>
+      <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
+      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
         <Stack spacing={8}>
           {tourney_btns}
         </Stack>   
       </div>     
-      <CreateTournamentModal openCreate={openCreate} handleCloseCreate={handleCloseCreate} updateTournamentField={updateTournamentField} handleConfirmedCreate={handleConfirmedCreate}></CreateTournamentModal>
-      <InviteCodeModal openInviteCode={openInviteCode} handleCloseCreate={handleCloseCreate} inviteCode={tournament.inviteCode} handleSubmit={handleSubmit}></InviteCodeModal>
+      <CreateTournamentModal openCreate={openCreate} handleCloseCreate={handleCloseCreate} handleSubmit={handleSubmit} updateTournamentField={updateTournamentField} ></CreateTournamentModal>
       <JoinTournamentModal openJoin={openJoin} handleCloseJoin={handleCloseJoin} updateTeamField={updateTeamField} joinTournament={joinTournament}></JoinTournamentModal>
    </>
   )

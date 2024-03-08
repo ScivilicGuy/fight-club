@@ -309,7 +309,6 @@ def generate_leaderboard():
     else:
       leaderboard[winner] = 1
 
-  print(leaderboard)
   # sort players to find top 10
   sorted_top_ten_leaderboard = sorted(leaderboard.items(), key=lambda x:x[1], reverse=True)[:10]
   return sorted_top_ten_leaderboard

@@ -15,7 +15,6 @@ export const makeid = (length) => {
 const handleRes = async (res) => {
   const data = await res.json()
   if (res.status === 400 || res.status === 403) {
-    console.log(data)
     throw new Error(data.message)
   } else if (!res.ok) {
     throw new Error('An unexpected error occured')
