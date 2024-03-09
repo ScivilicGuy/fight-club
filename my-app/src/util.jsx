@@ -13,14 +13,13 @@ export const makeid = (length) => {
 }
 
 const handleRes = async (res) => {
+  const data = await res.json()
   if (res.status === 400 || res.status === 403) {
-    const errorObj = await res.json()
-    throw new Error(errorObj.error)
+    throw new Error(data.message)
   } else if (!res.ok) {
     throw new Error('An unexpected error occured')
   } else {
-    const dataObj = await res.json()
-    return dataObj
+    return data
   }
 }
 
@@ -51,4 +50,8 @@ export const apiFetch = async (route, method, data) => {
     throw new Error('An unexpected error occured.')
   }
   return handleRes(res)
+}
+
+export const powerOf2 = (n) => {
+  return (n > 1) && !(n & (n - 1));
 }

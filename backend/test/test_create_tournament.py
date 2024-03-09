@@ -1,32 +1,37 @@
-import pytest
-import requests
-import configparser
+from api_calls import view_tournaments, view_tournament, create_tournament
+from test_helpers import dict_equals
 
-config = configparser.ConfigParser()
-config.read("config.ini")
-CONFIG = config["DEFAULT"]
+TOURNAMENT_CREATION_FIELDS = ["name", "desc", "inviteCode", "numTeams", "format"]
 
-@pytest.fixture
-def base_tournament():
-    return ["Test", "Test", 4, 2] 
+# currently a white box test, probably should use the api to test instead
+def test_create_tournament(base_tournament, db_conn):
+    _ = db_conn
 
-def _get_url(route):
-    if route[0] != "/":
-        route = "/" + route
-    return f"http://localhost:{CONFIG["FrontendPort"]}" + route
-
-def _create_tournament(name, desc, num_teams, num_rounds):
-    return requests.post(
-        _get_url("/create/tournament"),
-        json=dict(
-            name=name,
-            desc=desc,
-            numTeams=num_teams,
-            numRounds=num_rounds
-        )
-    )
-
-def test_create_tournament(base_tournament):
-    res = _create_tournament(*base_tournament)    
+    res = create_tournament(**base_tournament)    
     assert res.status_code == 200
-    assert type(res.json()["tournamentId"]) == int
+    id = res.body["tournamentId"]
+    assert type(id) == int
+
+    tournaments = view_tournaments().body.get("tournaments")
+    assert len(tournaments) == 1
+
+    # this doubles up as a basic test of view_tournament
+    tournament = view_tournament(id).body.get("tournament")
+    assert dict_equals(tournament, base_tournament, *TOURNAMENT_CREATION_FIELDS)
+    assert tournament.get("players") == []
+    
+def test_create_multiple_tournaments(multiple_tournaments, db_conn):
+    _ = db_conn
+
+    resps = []
+    for t in multiple_tournaments:
+        resps.append(create_tournament(**t))
+
+    tournaments = view_tournaments().body.get("tournaments")
+    assert len(tournaments) == len(multiple_tournaments)
+
+    for i, res in enumerate(resps):
+        id = res.body["tournamentId"]
+        tournament = view_tournament(id).body.get("tournament")
+        assert dict_equals(tournament, multiple_tournaments[i], *TOURNAMENT_CREATION_FIELDS)
+        assert tournament.get("players") == []

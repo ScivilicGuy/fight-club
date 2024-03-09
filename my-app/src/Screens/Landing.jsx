@@ -1,169 +1,111 @@
-import React, {useState} from 'react'
-import Button from '@mui/material/Button';
+import React, { useState } from 'react'
 import { Stack } from '@mui/material';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
 import { makeid, apiFetch } from '../util';
+import { useNavigate } from 'react-router-dom';
+import TournamentBtn from '../Components/TournamentBtn';
+import JoinTournamentModal from '../Components/JoinTournamentModal';
+import CreateTournamentModal from '../Components/CreateTournamentModal';
+import { States } from '../TournamentState'
+import SnackBarAlert from '../Components/SnackBarAlert';
 
 const CODE_LENGTH = 6
 
 function Landing() {
-  const [open, setOpen] = useState(false);
-  const [openInviteCode, setOpenInviteCode] = useState(false);
+  const navigate = useNavigate()
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [openCreate, setOpenCreate] = useState(false)
+  const [openJoin, setOpenJoin] = useState(false)
   const [tournament, setTournament] = useState({
     name: '',
     desc: '',
-    inviteCode: '',
-    numTeams: 0,
-    numRounds: 0
+    inviteCode: makeid(CODE_LENGTH),
+    state: States.SCHEDULED
   })
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const [team, setTeam] = useState({
+    code: '',
+    playerName: ''
+  })
+
+  const handleOpenCreate = () => {
+    setOpenCreate(true)
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseCreate = () => {
+    setOpenCreate(false)
   };
 
-  const handleCloseInvite = () => {
-    setOpenInviteCode(false);
+  const handleOpenJoin = () => {
+    setOpenJoin(true);
   };
+
+  const handleCloseJoin = () => {
+    setOpenJoin(false);
+  };
+
+  const viewTournaments = () => {
+    navigate('/tournaments')
+  }
+
+  const viewLeaderboards = () => {
+    navigate('/leaderboard')
+  }
+
+  const joinTournament = async() => {
+    try {
+      handleCloseJoin()
+      await apiFetch('/tournament/join', 'POST', team)
+      setOpenSuccess(true)
+      setSuccessMsg('Successfully joined tournament!')
+      setTeam({})
+    } catch (error) {
+      setOpenError(true)
+      setErrorMsg(error.message)
+    }
+  }
+
+  const tourney_btns = [
+    <TournamentBtn action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
+    <TournamentBtn action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
+    <TournamentBtn action={viewTournaments} title={'View Tournaments'}></TournamentBtn>,
+    <TournamentBtn action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
+  ]
 
   const handleSubmit = async () => {
-    updateInviteCode()
-    setOpenInviteCode(true)
-    handleClose()
     try {
-      console.log(tournament.numRounds)
-      const res = await apiFetch('create/tournament', 'POST', tournament)
-      alert(`Successfully created tournament #${res.tournamentId}`)
+      handleCloseCreate()
+      const res = await apiFetch('/tournament/create', 'POST', tournament)
+      navigate(`/tournaments/${res.tournamentId}`)
     } catch (error) {
-      alert(error)
-      console.log(error)
+      setOpenError(true)
+      setErrorMsg(error.message)
     }
-
   }
 
-  const updateName = (e) => {
-    setTournament({ ...tournament, name: e.target.value })
+  const updateTournamentField = (e) => {
+    const { name, value } = e.target
+    setTournament({ ...tournament, [name]: value })
   }
 
-  const updateDesc = (e) => {
-    setTournament({ ...tournament, desc: e.target.value })
-  }
-
-  const updateTeams = (e) => {
-    setTournament({ ...tournament, numTeams: e.target.value })
-  }
-
-  const updateRounds = (e) => {
-    setTournament({ ...tournament, numRounds: e.target.value })
-  }
-
-  const updateInviteCode = () => {
-    setTournament({ ...tournament, inviteCode: makeid(CODE_LENGTH)})
+  const updateTeamField = (e) => {
+    const { name, value } = e.target
+    setTeam({ ...team, [name]: value })
   }
 
   return (
     <>
-      <Stack spacing={2} direction="col">
-        <Button variant="outlined" onClick={handleClickOpen}>Create Tournament</Button>
-        <Button variant="outlined">Edit Tournament</Button>
-        <Button variant="outlined">Start Tournament</Button>
-        <Button variant="outlined">View Tournaments</Button>
-      </Stack>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        PaperProps={{
-          component: 'form'
-        }}
-      >
-        <DialogTitle>Create Tournament</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To subscribe to this website, please enter your email address here. We
-            will send updates occasionally.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="name"
-            name="name"
-            label="Tournament Name"
-            type="string"
-            fullWidth
-            variant="standard"
-            onChange={updateName}
-          />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="desc"
-            name="desc"
-            label="Description"
-            type="string"
-            fullWidth
-            variant="standard"
-            onChange={updateDesc}
-          />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="num-teams"
-            name="num-teams"
-            label="Number of Teams"
-            type="number"
-            fullWidth
-            variant="standard"
-            onChange={updateTeams}
-          />
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="num-rounds"
-            name="num-rounds"
-            label="Number of Rounds"
-            type="number"
-            fullWidth
-            variant="standard"
-            onChange={updateRounds}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Create</Button>
-        </DialogActions>
-    </Dialog>
-    <Dialog
-        open={openInviteCode}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          Invite Code
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {tournament.inviteCode}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseInvite} autoFocus>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
+      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
+        <Stack spacing={8}>
+          {tourney_btns}
+        </Stack>   
+      </div>     
+      <CreateTournamentModal openCreate={openCreate} handleCloseCreate={handleCloseCreate} handleSubmit={handleSubmit} updateTournamentField={updateTournamentField} ></CreateTournamentModal>
+      <JoinTournamentModal openJoin={openJoin} handleCloseJoin={handleCloseJoin} updateTeamField={updateTeamField} joinTournament={joinTournament}></JoinTournamentModal>
    </>
   )
 }
