@@ -3,7 +3,6 @@ import { Stack } from '@mui/material';
 import { makeid, apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
 import TournamentBtn from '../Components/TournamentBtn';
-import InviteCodeModal from '../Components/InviteCodeModal';
 import JoinTournamentModal from '../Components/JoinTournamentModal';
 import CreateTournamentModal from '../Components/CreateTournamentModal';
 import { States } from '../TournamentState'

@@ -63,6 +63,7 @@ function Tournament() {
     if (!powerOf2(numPlayers)) {
       setOpenError(true)
       setErrorMsg('ERROR: Number of players must be a power of 2!')
+      return 
     }
 
     setTournamentState(States.STARTED)
