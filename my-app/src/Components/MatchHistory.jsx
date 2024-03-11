@@ -10,6 +10,7 @@ function MatchHistory({ matches }) {
         <div key={`finished-match-${match.matchId}`} style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem'}}>
           <Card variant="outlined" sx={{ minWidth: 600 }}>
             <CardContent>
+              <Typography variant='h6' align='center' gutterBottom>Round {match.round}</Typography>
               <DisplayWinnerBtns selections={[match.player1, match.player2]} winner={match.winner} />
             </CardContent>
           </Card>

@@ -223,7 +223,7 @@ def set_winners(winners):
 # retrieves all matches for a tournament
 def get_matches(tournamentId):
   get_tournament_matches = '''
-    SELECT matchId, player1, player2, winner
+    SELECT matchId, player1, player2, winner, round
     FROM Matches
     WHERE (tournamentId = %s)
   '''
@@ -238,7 +238,8 @@ def get_matches(tournamentId):
           "matchId": res[0],
           "player1": res[1],
           "player2": res[2],
-          "winner": res[3]
+          "winner": res[3],
+          "round": res[4]
         })
   except:
     raise AccessError(description="ERROR: problem occurred when retrieving matches")
