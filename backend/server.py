@@ -2,7 +2,7 @@ from json import dumps
 from flask import Flask, request
 from flask_login import LoginManager
 from error import InputError
-from tournament import add_player_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
+from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
@@ -53,13 +53,15 @@ def view_tournament(tournamentId):
 @app.route('/tournament/join', methods=['POST'])
 def join_tournament():
     data = request.get_json()
-    has_empty = any(i == "" for i in [data["code"], data["playerName"]])
     
     # all given inputs should be non-empty
-    if has_empty:
+    if not data["code"]:
         raise InputError(description="All fields should be non-empty to create a tournament")
     
-    return add_player_to_tournament(data["code"], data["playerName"])
+    if not data["players"]:
+        raise InputError(description="All fields should be non-empty to create a tournament")
+    
+    return add_players_to_tournament(data["code"], data["players"])
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
 def start_tournament(tournamentId):

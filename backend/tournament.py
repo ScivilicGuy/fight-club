@@ -110,11 +110,11 @@ def get_tournament(tournamentId):
 
   return tournament
 
-# adds a player to a given tournament (identified by input code)
+# adds players to a given tournament (identified by input code)
 # errors occur if the tournament has already started/finished
 # or the player has already joined a separate tournament
 # or the code is invalid
-def add_player_to_tournament(code: string, playerName: string):
+def add_players_to_tournament(code: string, players: list):
   add_player = '''
     INSERT INTO Players
     VALUES (%s, %s)
@@ -146,7 +146,8 @@ def add_player_to_tournament(code: string, playerName: string):
       if state == States.SCHEDULED.name:
         cur.execute(count_existing_players, [tournamentId])
         if cur.fetchone()[0] < 16:
-          cur.execute(add_player, [playerName, tournamentId])
+          for player in players:
+            cur.execute(add_player, [player, tournamentId])
           conn.commit()
   except TypeError:
     raise InputError(description="Invalid code")

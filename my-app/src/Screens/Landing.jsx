@@ -24,11 +24,9 @@ function Landing() {
     inviteCode: makeid(CODE_LENGTH),
     state: States.SCHEDULED
   })
-
-  const [team, setTeam] = useState({
-    code: '',
-    playerName: ''
-  })
+  
+  const [inviteCode, setInviteCode]= useState('')
+  const [players, setPlayers] = useState([])
 
   const handleOpenCreate = () => {
     setOpenCreate(true)
@@ -57,10 +55,14 @@ function Landing() {
   const joinTournament = async() => {
     try {
       handleCloseJoin()
-      await apiFetch('/tournament/join', 'POST', team)
+      await apiFetch('/tournament/join', 'POST', {
+        code: inviteCode,
+        players: players
+      })
       setOpenSuccess(true)
       setSuccessMsg('Successfully joined tournament!')
-      setTeam({})
+      setInviteCode('')
+      setPlayers([])
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
@@ -87,12 +89,11 @@ function Landing() {
 
   const updateTournamentField = (e) => {
     const { name, value } = e.target
-    setTournament({ ...tournament, [name]: value })
+    setTournament({ ...tournament, [name]: value.trim() })
   }
 
-  const updateTeamField = (e) => {
-    const { name, value } = e.target
-    setTeam({ ...team, [name]: value })
+  const updateInviteCode = (e) => {
+    setInviteCode(e.target.value)
   }
 
   return (
@@ -105,7 +106,7 @@ function Landing() {
         </Stack>   
       </div>     
       <CreateTournamentModal openCreate={openCreate} handleCloseCreate={handleCloseCreate} handleSubmit={handleSubmit} updateTournamentField={updateTournamentField} ></CreateTournamentModal>
-      <JoinTournamentModal openJoin={openJoin} handleCloseJoin={handleCloseJoin} updateTeamField={updateTeamField} joinTournament={joinTournament}></JoinTournamentModal>
+      <JoinTournamentModal openJoin={openJoin} handleCloseJoin={handleCloseJoin} updateInviteCode={updateInviteCode} setPlayers={setPlayers} players={players} joinTournament={joinTournament}></JoinTournamentModal>
    </>
   )
 }
