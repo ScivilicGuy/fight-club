@@ -1,6 +1,8 @@
 from json import dumps
 from flask import Flask, request
-from flask_login import LoginManager
+from auth import authenticate_user, register_user
+from user import User
+from flask_login import LoginManager, login_user
 from error import InputError
 from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
@@ -26,6 +28,20 @@ app.config['TRAP_HTTP_EXCEPTIONS'] = True
 app.register_error_handler(Exception, defaultHandler)
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+@app.route('/register', methods=['POST']) 
+def register():
+    data = request.get_json()
+    return register_user(data["username"], data["password"], data["email"])
+
+@app.route('/login', methods=['POST']) 
+def login():
+    data = request.get_json()
+    user_id = authenticate_user(data["username"], data["password"])
+    if user_id:
+        user = User(user_id)
+        login_user(user)
+    return {}
 
 @app.route('/tournament/create', methods=['POST'])
 def create_tournament():
