@@ -10,6 +10,7 @@ function ViewTournaments() {
   useEffect(() => {
     (async() => {
       try {
+        console.log(tournaments)
         const res = await apiFetch('tournaments', 'GET')
         setTournaments(res.tournaments)
       } catch (error) {

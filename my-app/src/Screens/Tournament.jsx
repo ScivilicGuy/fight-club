@@ -71,16 +71,8 @@ function Tournament() {
     setOpenInviteCode(false)
   }
 
-  const setTournamentState = (newVal) => {
-    setTournament({...tournament, state: newVal})
-  }
-
-  const setTournamentRound = (newVal) => {
-    setTournament({...tournament, round: newVal})
-  }
-
-  const setTournamentWinner = (newVal) => {
-    setTournament({...tournament, winner: newVal})
+  const setTournamentField = (key, newVal) => {
+    setTournament(prevState => ({...prevState, [key]: newVal}))
   }
 
   const handleTournamentStart = async () => {
@@ -93,7 +85,7 @@ function Tournament() {
 
     try {
       await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': players, 'round': tournament.round})
-      setTournamentState(States.STARTED)
+      setTournamentField('state', States.STARTED)
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
@@ -103,7 +95,8 @@ function Tournament() {
   const handleTournamentFinish = async () => {
     try {
       await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': Object.entries(winners)[0]})
-      setTournamentState(States.FINISHED)
+      setTournamentField('state', States.FINISHED)
+      setWinners({})
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
@@ -111,6 +104,7 @@ function Tournament() {
   }
 
   const handleNextRound = async () => {
+    console.log(winners)
     if (Object.keys(winners).length !== players.length / (2 ** tournament.round)) {
       setOpenError(true)
       setErrorMsg('All matches must have a winner!')
@@ -121,7 +115,7 @@ function Tournament() {
       setOpenSuccess(true)
       const winner = Object.values(winners)[0]
       setSuccessMsg(`Winner is ${winner}`)
-      setTournamentWinner(winner)
+      setTournamentField('winner', winner)
       handleTournamentFinish(winner)
       return
     }
@@ -129,7 +123,7 @@ function Tournament() {
     try {
       const nextRound = tournament.round + 1
       await apiFetch(`tournament/${params.tournamentId}/next/round`, 'POST', {'players': winners, 'round': nextRound})
-      setTournamentRound(nextRound)
+      setTournamentField('round', nextRound)
       setWinners({})
     } catch (error) {
       setOpenError(true)
