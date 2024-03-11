@@ -1,5 +1,6 @@
 from json import dumps
 from flask import Flask, request
+from flask_login import LoginManager
 from error import InputError
 from tournament import add_player_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
 from flask_cors import CORS
@@ -23,6 +24,8 @@ app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['TRAP_HTTP_EXCEPTIONS'] = True
 app.register_error_handler(Exception, defaultHandler)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 @app.route('/tournament/create', methods=['POST'])
 def create_tournament():
