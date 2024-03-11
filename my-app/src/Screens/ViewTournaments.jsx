@@ -28,7 +28,7 @@ function ViewTournaments() {
         My Tournaments
       </Typography>
       {tournaments.map((tournament) => (
-        <Card>
+        <Card key={`tournament-${tournament.id}`}>
           <CardActionArea onClick={() => openTournament(tournament.id)}>
             <CardContent>
               <Typography variant='h6' align='center'>{tournament.name}</Typography>

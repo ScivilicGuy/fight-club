@@ -1,11 +1,31 @@
-import React from 'react'
-import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import React, { useState } from 'react'
+import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Chip } from '@mui/material';
 
-function JoinTournamentModal(props) {
+function JoinTournamentModal({ openJoin, handleCloseJoin, updateInviteCode, setPlayers, players, joinTournament }) {
+  const [inputValue, setInputValue] = useState('')
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleInputKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ',') {
+      const newInputValue = inputValue.trim();
+      if (newInputValue) {
+        setPlayers([...players, newInputValue]);
+        setInputValue('');
+      }
+    }
+  };
+
+  const handleChipDelete = (chipIndex) => {
+    setPlayers(players.filter((_, index) => index !== chipIndex));
+  };
+
   return (
     <Dialog
-      open={props.openJoin}
-      onClose={props.handleCloseJoin}
+      open={openJoin}
+      onClose={handleCloseJoin}
       PaperProps={{
         component: 'form'
       }}
@@ -13,7 +33,7 @@ function JoinTournamentModal(props) {
       <DialogTitle>Join Tournament</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          To join a tournament, please fill out all the fields below.
+          You can press enter after each player to add multiple players.
         </DialogContentText>
         <TextField
           autoFocus
@@ -25,7 +45,7 @@ function JoinTournamentModal(props) {
           type="string"
           fullWidth
           variant="standard"
-          onChange={props.updateTeamField}
+          onChange={updateInviteCode}
         />
         <TextField
           autoFocus
@@ -33,16 +53,28 @@ function JoinTournamentModal(props) {
           margin="dense"
           id="player-name"
           name="playerName"
+          value={inputValue}
           label="Summoner Name"
           type="string"
           fullWidth
           variant="standard"
-          onChange={props.updateTeamField}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
         />
+        <div>
+          {players.map((chip, index) => (
+            <Chip
+              key={index}
+              label={chip}
+              onDelete={() => handleChipDelete(index)}
+              style={{ margin: '4px' }}
+            />
+          ))}
+        </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.handleCloseJoin}>Cancel</Button>
-        <Button onClick={props.joinTournament}>Join</Button>
+        <Button onClick={handleCloseJoin}>Cancel</Button>
+        <Button onClick={joinTournament}>Join</Button>
       </DialogActions>
     </Dialog>
   )

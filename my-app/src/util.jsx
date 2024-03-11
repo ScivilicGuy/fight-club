@@ -55,3 +55,7 @@ export const apiFetch = async (route, method, data) => {
 export const powerOf2 = (n) => {
   return (n > 1) && !(n & (n - 1));
 }
+
+export const capitalizeFirstLetter = (s) => {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
