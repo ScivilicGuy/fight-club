@@ -188,7 +188,7 @@ def create_matches(tournamentId, players, round):
 # retrieves all matches for a tournament
 def get_matches(tournamentId):
   get_tournament_matches = '''
-    SELECT player1, player2
+    SELECT matchId, player1, player2
     FROM Matches
     WHERE (tournamentId = %s)
   '''
@@ -200,8 +200,9 @@ def get_matches(tournamentId):
       cur.execute(get_tournament_matches, [tournamentId])
       for res in cur.fetchall():
         matches.append({
-          "player1": res[0],
-          "player2": res[1]
+          "matchId": res[0],
+          "player1": res[1],
+          "player2": res[2]
         })
   except:
     raise AccessError(description="ERROR: problem occurred when retrieving matches")
@@ -214,7 +215,7 @@ def get_matches(tournamentId):
 # retrieves all matches for a given tournament for a particular round
 def get_matches_for_round(tournamentId, round):
   get_tournament_matches = '''
-    SELECT player1, player2
+    SELECT matchId, player1, player2
     FROM Matches
     WHERE (tournamentId = %s AND round = %s)
   '''
@@ -226,8 +227,9 @@ def get_matches_for_round(tournamentId, round):
       cur.execute(get_tournament_matches, [tournamentId, round])
       for res in cur.fetchall():
         matches.append({
-          "player1": res[0],
-          "player2": res[1]
+          "matchId": res[0],
+          "player1": res[1],
+          "player2": res[2]
         })
   except:
     raise AccessError(description="ERROR: problem occurred when retrieving matches")

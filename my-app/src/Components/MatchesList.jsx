@@ -1,22 +1,22 @@
 import React from 'react'
-import IconlessRadio from '../Components/IconlessRadio';
+import SelectWinnerBtns from './SelectWinnerBtns';
 import { Typography, Card, CardContent } from '@mui/material'
 
-function MatchesList(props) {
+function MatchesList({ matches, winners, setWinners }) {
   const updateWinners = (e, index) => {
     if (!e.target.value) {
       return
     }
-    props.setWinners({...props.winners, [index]: e.target.value})
+    setWinners({...winners, [index]: e.target.value})
   }
 
   return (
-    props.matches.map((match, index) => (
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem'}}>
+    matches.map((match, index) => (
+      <div key={`match-${match.matchId}`} style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem'}}>
         <Card variant="outlined" sx={{ minWidth: 600 }}>
           <CardContent onClick={(e) => updateWinners(e, index)}>
             <Typography variant='h6' align='center' gutterBottom>Match {index+1}</Typography>
-            <IconlessRadio selections={[match.player1, match.player2]}></IconlessRadio>
+            <SelectWinnerBtns selections={[match.player1, match.player2]} />
           </CardContent>
         </Card>
       </div>

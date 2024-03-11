@@ -68,10 +68,10 @@ function Landing() {
   }
 
   const tourney_btns = [
-    <TournamentBtn action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
-    <TournamentBtn action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
-    <TournamentBtn action={viewTournaments} title={'View Tournaments'}></TournamentBtn>,
-    <TournamentBtn action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
+    <TournamentBtn key={'create-tournament-btn'} action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
+    <TournamentBtn key={'join-tournament-btn'} action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
+    <TournamentBtn key={'view-tournaments-btn'} action={viewTournaments} title={'View Tournaments'}></TournamentBtn>,
+    <TournamentBtn key={'view-leaderboard-btn'} action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
   ]
 
   const handleSubmit = async () => {
