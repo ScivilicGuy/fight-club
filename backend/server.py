@@ -2,7 +2,7 @@ from json import dumps
 from flask import Flask, request
 from auth import authenticate_user, register_user
 from user import User
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_required, login_user
 from error import InputError
 from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
@@ -29,6 +29,10 @@ app.register_error_handler(Exception, defaultHandler)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
 @app.route('/register', methods=['POST']) 
 def register():
     data = request.get_json()
@@ -44,6 +48,7 @@ def login():
     return {}
 
 @app.route('/tournament/create', methods=['POST'])
+@login_required
 def create_tournament():
     data = request.get_json()
     has_empty = any(i == "" for i in [data["name"], data["inviteCode"], data["state"]])
@@ -80,6 +85,7 @@ def join_tournament():
     return add_players_to_tournament(data["code"], data["players"])
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
+@login_required
 def start_tournament(tournamentId):
     data = request.get_json()
 
@@ -95,6 +101,7 @@ def start_tournament(tournamentId):
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
+@login_required
 def start_next_round(tournamentId):
     data = request.get_json()
 
@@ -111,6 +118,7 @@ def start_next_round(tournamentId):
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/end', methods=['PUT'])
+@login_required
 def end_tournament(tournamentId):
     data = request.get_json()
 
@@ -128,6 +136,7 @@ def view_tournament_matches_for_round(tournamentId, round):
     return {"matches": get_matches_for_round(tournamentId, round)}
 
 @app.route('/tournament/<tournamentId>/remove/player', methods=['DELETE'])
+@login_required
 def remove_tournament_player(tournamentId):
     data = request.get_json()
 

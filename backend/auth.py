@@ -43,3 +43,23 @@ def authenticate_user(username, password):
     conn_pool.putconn(conn)
 
   return user_id
+
+def get_user_by_id(user_id):
+  find_user = '''
+    SELECT *
+    FROM Users
+    WHERE (userId = %s)
+  ''' 
+
+  user = None
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(find_user, [user_id])
+      user = cur.fetchone()[0]
+  except IndexError:
+    raise InputError(description="User does not exist")
+  finally:
+    conn_pool.putconn(conn)
+
+  return user

@@ -10,9 +10,4 @@ class User(UserMixin):
         user_data = get_user_by_id(user_id)
         if not user_data:
             return None
-        return User(user_data['id'])  # Assuming 'id' is the user ID field
-
-    @staticmethod
-    def create(user_data):
-        # Create a new user in your database and return a User object
-        pass
+        return User(user_data['id'])  
