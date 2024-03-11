@@ -126,6 +126,12 @@ def add_player_to_tournament(code: string, playerName: string):
     WHERE (inviteCode = %s)
   '''
 
+  count_existing_players = '''
+    SELECT COUNT(playerName)
+    FROM Players
+    WHERE (tournamentId = %s)
+  '''
+
   state = None
 
   try:
@@ -138,8 +144,10 @@ def add_player_to_tournament(code: string, playerName: string):
 
       # can only join tournaments that haven't started
       if state == States.SCHEDULED.name:
-        cur.execute(add_player, [playerName, tournamentId])
-        conn.commit()
+        cur.execute(count_existing_players, [tournamentId])
+        if cur.fetchone()[0] < 16:
+          cur.execute(add_player, [playerName, tournamentId])
+          conn.commit()
   except TypeError:
     raise InputError(description="Invalid code")
   except:
@@ -155,8 +163,11 @@ def add_player_to_tournament(code: string, playerName: string):
 
 # generates a list of matches between pairs of players that is stored in the db
 # updates tournament state since it is called at the start of every new round (new round = old round + 1)
-def create_matches(tournamentId, players, round):
-  opponent_pairs = create_random_pairs(players)
+def create_matches(tournamentId: int, players, round: int):
+  if not isinstance(players, list):
+    opponent_pairs = create_random_pairs(list(players.values()))
+  else:
+    opponent_pairs = create_random_pairs(players)
 
   add_match = '''
     INSERT INTO Matches (tournamentId, player1, player2, round)
@@ -185,10 +196,33 @@ def create_matches(tournamentId, players, round):
   
   return {}
 
+# set winners for finished matches
+def set_winners(winners):
+  update_winner = '''
+    UPDATE Matches
+    SET winner = %s
+    WHERE (matchId = %s)
+  '''
+
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      for winner in winners.items():
+        cur.execute(update_winner, [winner[1], winner[0]])
+      conn.commit()
+  except:
+    print("Problem occurred when updating winners") 
+    raise InputError(description="Problem occurred when updating winners")
+  finally:
+    if conn:
+      conn_pool.putconn(conn)
+
+  return {}
+
 # retrieves all matches for a tournament
 def get_matches(tournamentId):
   get_tournament_matches = '''
-    SELECT matchId, player1, player2
+    SELECT matchId, player1, player2, winner
     FROM Matches
     WHERE (tournamentId = %s)
   '''
@@ -202,7 +236,8 @@ def get_matches(tournamentId):
         matches.append({
           "matchId": res[0],
           "player1": res[1],
-          "player2": res[2]
+          "player2": res[2],
+          "winner": res[3]
         })
   except:
     raise AccessError(description="ERROR: problem occurred when retrieving matches")
@@ -241,16 +276,25 @@ def get_matches_for_round(tournamentId, round):
 
 # sets tournament state to finished and updates the winner
 def finish_tournament(tournamentId, winner):
-  update_winner = '''
+  update_tournament_winner = '''
     UPDATE Tournaments
     SET state = 'FINISHED', winner = %s
     WHERE tournamentId = %s
   '''
 
+  update_match_winner = '''
+    UPDATE Matches
+    SET winner = %s
+    WHERE (matchId = %s)
+  '''
+  match_id = winner[0]
+  player_name = winner[1]
+
   try:
     conn = conn_pool.getconn()
     with conn.cursor() as cur:
-      cur.execute(update_winner, [winner, tournamentId])
+      cur.execute(update_tournament_winner, [player_name, tournamentId])
+      cur.execute(update_match_winner, [player_name, match_id])
       conn.commit()
   except TypeError:
     raise InputError(description="ERROR: problem occurred when setting the tournament winner")

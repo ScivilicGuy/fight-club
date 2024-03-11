@@ -1,25 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-export default function SelectWinnerBtns({ selections }) {
-  const [selection, setSelection] = useState(null);
-
-  const handleSelection = (event, newSelection) => {
-    if (newSelection !== null) {
-      setSelection(newSelection);
-    }
-    
-  }
-
+export default function DisplayWinnerBtns({ selections, winner }) {
   return (
     <ToggleButtonGroup
-      value={selection}
+      value={winner}
       exclusive
       fullWidth
+      disabled
       size='large'
       color='primary'
-      onChange={handleSelection}
       aria-label='winner-selection'
     >
       {selections.map((curr) => (

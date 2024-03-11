@@ -12,6 +12,7 @@ import SnackBarAlert from '../Components/SnackBarAlert';
 
 function Tournament() {
   const params = useParams()
+  const tournamentId = params.tournamentId
   const [tournament, setTournament] = useState({
     name: '',
     desc: '',
@@ -21,12 +22,12 @@ function Tournament() {
     winner: '',
     players: []
   })
-  const [tournamentState, setTournamentState] = useState('')
   const [players, setPlayers] = useState([])
   const [matches, setMatches] = useState([])
   const [winners, setWinners] = useState({})
-  const [round, setRound] = useState(1)
   const [openInviteCode, setOpenInviteCode] = useState(false)
+
+  /* success/error alerts */
   const [openError, setOpenError] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [openSuccess, setOpenSuccess] = useState(false)
@@ -35,12 +36,24 @@ function Tournament() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiFetch(`tournament/${params.tournamentId}`, 'GET')
+        const res = await apiFetch(`tournament/${tournamentId}`, 'GET')
         setTournament(res.tournament)
-        setTournamentState(res.tournament.state)
         setPlayers(res.tournament.players)
+      } catch (error) {
+        setOpenError(true)
+        setErrorMsg(error.message)
+      }
+    })()
+  }, [tournamentId])
+
+  useEffect(() => {
+    (async () => {
+      try {
         if (tournament.state === States.STARTED) {
-          const res = await apiFetch(`tournament/${params.tournamentId}/matches/${tournament.round}`, 'GET')
+          const res = await apiFetch(`tournament/${tournamentId}/matches/${tournament.round}`, 'GET')
+          setMatches(res.matches)
+        } else if (tournament.state === States.FINISHED) {
+          const res = await apiFetch(`tournament/${tournamentId}/matches`, 'GET')
           setMatches(res.matches)
         }
       } catch (error) {
@@ -48,7 +61,7 @@ function Tournament() {
         setErrorMsg(error.message)
       }
     })()
-  }, [params.tournamentId, tournament.round, tournament.state])
+  }, [tournamentId, tournament.round, tournament.state])
 
   const handleOpenInviteCode = () => {
     setOpenInviteCode(true)
@@ -56,6 +69,18 @@ function Tournament() {
 
   const handleCloseInviteCode = () => {
     setOpenInviteCode(false)
+  }
+
+  const setTournamentState = (newVal) => {
+    setTournament({...tournament, state: newVal})
+  }
+
+  const setTournamentRound = (newVal) => {
+    setTournament({...tournament, round: newVal})
+  }
+
+  const setTournamentWinner = (newVal) => {
+    setTournament({...tournament, winner: newVal})
   }
 
   const handleTournamentStart = async () => {
@@ -66,22 +91,19 @@ function Tournament() {
       return 
     }
 
-    setTournamentState(States.STARTED)
     try {
       await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': players, 'round': tournament.round})
-      const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round}`, 'GET')
-      setMatches(res.matches)
+      setTournamentState(States.STARTED)
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
     }
   }
 
-  const handleTournamentFinish = async (winner) => {
+  const handleTournamentFinish = async () => {
     try {
-      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': winner})
+      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': Object.entries(winners)[0]})
       setTournamentState(States.FINISHED)
-      setTournament({...tournament, winner: winner})
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
@@ -89,7 +111,7 @@ function Tournament() {
   }
 
   const handleNextRound = async () => {
-    if (Object.keys(winners).length !== players.length / (2 ** round)) {
+    if (Object.keys(winners).length !== players.length / (2 ** tournament.round)) {
       setOpenError(true)
       setErrorMsg('All matches must have a winner!')
       return 
@@ -97,16 +119,17 @@ function Tournament() {
 
     if (Object.keys(winners).length === 1) {
       setOpenSuccess(true)
-      setSuccessMsg(`Winner is ${winners[0]}`)
-      handleTournamentFinish(winners[0])
+      const winner = Object.values(winners)[0]
+      setSuccessMsg(`Winner is ${winner}`)
+      setTournamentWinner(winner)
+      handleTournamentFinish(winner)
       return
     }
 
     try {
-      await apiFetch(`tournament/${params.tournamentId}/next/round`, 'POST', {'players': Object.values(winners), 'round': round + 1})
-      const res = await apiFetch(`tournament/${params.tournamentId}/matches/${round + 1}`, 'GET')
-      setMatches(res.matches)
-      setRound(round + 1)
+      const nextRound = tournament.round + 1
+      await apiFetch(`tournament/${params.tournamentId}/next/round`, 'POST', {'players': winners, 'round': nextRound})
+      setTournamentRound(nextRound)
       setWinners({})
     } catch (error) {
       setOpenError(true)
@@ -116,17 +139,17 @@ function Tournament() {
 
   const removePlayer = async (player) => {
     try {
-      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
       const newPlayersArray = players.filter(i => i !== player)
       setPlayers(newPlayersArray)
+      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
     }
   }
 
-  const renderTourneyState = (tournamentState) => {
-    if (tournamentState === States.SCHEDULED) {
+  const renderTourneyState = () => {
+    if (tournament.state === States.SCHEDULED) {
       return ( 
         <>
           <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem'}}>
@@ -138,7 +161,7 @@ function Tournament() {
           <PlayerList players={players} removePlayer={removePlayer}></PlayerList>
         </>
       )
-    } else if (tournamentState === States.STARTED) {
+    } else if (tournament.state === States.STARTED) {
       let msg = 'Start Next Round'
       if (matches.length === 1) {
         msg = 'Finish Tournament'
@@ -151,9 +174,9 @@ function Tournament() {
           <MatchesList matches={matches} winners={winners} setWinners={setWinners}></MatchesList>
         </>
       )
-    } else if (tournamentState === States.FINISHED) {
-      return <TournamentResult winner={tournament.winner}></TournamentResult>
-    } else if (tournamentState === '') {
+    } else if (tournament.state === States.FINISHED) {
+      return <TournamentResult winner={tournament.winner} matches={matches}></TournamentResult>
+    } else if (tournament.state === '') {
       return <></>
     } else {
       setOpenError(true)
@@ -166,7 +189,7 @@ function Tournament() {
       <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
       <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <Typography variant='h2' align='center' gutterBottom>{tournament.name}</Typography>
-      {renderTourneyState(tournamentState)}
+      {renderTourneyState()}
       <InviteCodeModal open={openInviteCode} handleClose={handleCloseInviteCode} inviteCode={tournament.inviteCode} />
     </>
   )

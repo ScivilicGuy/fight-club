@@ -2,7 +2,7 @@ from json import dumps
 from flask import Flask, request
 from flask_login import LoginManager
 from error import InputError
-from tournament import add_player_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament
+from tournament import add_player_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
@@ -89,6 +89,7 @@ def start_next_round(tournamentId):
     if not data["players"] or len(data["players"]) % 2 != 0:
         raise InputError(description="Every match must have a winner")
     
+    set_winners(data["players"])
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/end', methods=['PUT'])
