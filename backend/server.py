@@ -1,5 +1,5 @@
 from json import dumps
-from flask import Flask, request, session
+from flask import Flask, jsonify, request, session
 from auth import authenticate_user, register_user
 from user import User
 from flask_login import LoginManager, login_required, login_user, current_user
@@ -9,6 +9,8 @@ from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
 import secrets
+from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
+                               unset_jwt_cookies, jwt_required, JWTManager
 
 def defaultHandler(err):
     try:
@@ -26,18 +28,14 @@ def defaultHandler(err):
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['TRAP_HTTP_EXCEPTIONS'] = True
-app.config['SECRET_KEY'] = secrets.token_hex()
+app.config['JWT_SECRET_KEY'] = secrets.token_hex()
 app.register_error_handler(Exception, defaultHandler)
-login_manager = LoginManager()
-login_manager.init_app(app)
+jwt = JWTManager(app)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.get(user_id)
+@jwt.unauthorized_loader
+def unauthorized_callback(callback):
+    raise AccessError(description="You must be logged in to perform this action")
 
-@login_manager.unauthorized_handler
-def unauthorized():
-    raise AccessError(description="User must be logged in to perform this action")
 
 @app.route('/register', methods=['POST']) 
 def register():
@@ -48,18 +46,18 @@ def register():
 def login():
     data = request.get_json()
     user_id = authenticate_user(data["username"], data["password"])
-    if user_id:
-        user = User(user_id)
-        login_user(user)
-    return {}
+    access_token = create_access_token(identity=user_id)
+    return {"access_token": access_token}
 
-@app.route('/check/login', methods=['GET']) 
-def check_login():
-    print(session.items())
-    return {"logged_in": current_user.is_authenticated}
+@app.route('/logout', methods=['POST']) 
+@jwt_required()
+def logout():
+    resp = jsonify({'logout': True})
+    unset_jwt_cookies(resp)
+    return resp
 
 @app.route('/tournament/create', methods=['POST'])
-@login_required
+@jwt_required()
 def create_tournament():
     data = request.get_json()
     has_empty = any(i == "" for i in [data["name"], data["inviteCode"], data["state"]])

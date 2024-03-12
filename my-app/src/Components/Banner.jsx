@@ -1,20 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React, { useContext } from 'react'
 import { Box, Typography, IconButton, Button, AppBar, Toolbar } from '@mui/material'
 import HomeIcon from '@mui/icons-material/Home';
 import { useNavigate } from 'react-router-dom'
-import { apiFetch } from '../util';
+import { TOKEN } from '../config.js'
+import { apiFetch } from '../util.jsx';
+import { AuthContext } from '../App.js';
 
 function Banner() {
   const navigate = useNavigate()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  useEffect(() => {
-    async function checkLogin() {
-        const res = await apiFetch('/check/login', 'GET');
-        setIsLoggedIn(res.logged_in);
-    }
-    checkLogin();
-}, []);
+  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext)
 
   const viewHome = () => {
     navigate('/')
@@ -24,8 +18,15 @@ function Banner() {
     navigate('/login')
   }
 
-  const logout = () => {
-
+  const logout = async () => {
+    try {
+      await apiFetch('/logout', 'POST')
+      localStorage.removeItem(TOKEN)
+      setIsLoggedIn(false)
+      viewHome()
+    } catch (error) {
+      alert(error)
+    }
   }
 
   return (

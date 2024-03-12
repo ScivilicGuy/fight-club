@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
 import SnackBarAlert from '../Components/SnackBarAlert';
@@ -15,10 +15,13 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { TOKEN } from '../config.js'
+import { AuthContext } from '../App.js';
 
 function Login() {
   const [openError, setOpenError] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const { setIsLoggedIn } = useContext(AuthContext)
   const defaultTheme = createTheme();
   const navigate = useNavigate()
 
@@ -26,10 +29,12 @@ function Login() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     try {
-      await apiFetch('/login', 'POST', {
+      const res = await apiFetch('/login', 'POST', {
         username: data.get('username'),
         password: data.get('password')
       })
+      localStorage.setItem(TOKEN, res.access_token)
+      setIsLoggedIn(true)
       navigate('/')
     } catch (error) {
       setErrorMsg(error.message)
