@@ -76,13 +76,6 @@ function Tournament() {
   }
 
   const handleTournamentStart = async () => {
-    const numPlayers = players.length
-    if (!powerOf2(numPlayers)) {
-      setOpenError(true)
-      setErrorMsg('ERROR: Number of players must be a power of 2!')
-      return 
-    }
-
     try {
       await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': players, 'round': tournament.round})
       setTournamentField('state', States.STARTED)
@@ -94,8 +87,10 @@ function Tournament() {
 
   const handleTournamentFinish = async () => {
     try {
-      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': Object.entries(winners)[0]})
+      const winnerEntry = Object.entries(winners)[0]
+      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': winnerEntry})
       setTournamentField('state', States.FINISHED)
+      setTournamentField('winner', winnerEntry[1])
       setWinners({})
     } catch (error) {
       setOpenError(true)
@@ -112,11 +107,7 @@ function Tournament() {
     }
 
     if (Object.keys(winners).length === 1) {
-      setOpenSuccess(true)
-      const winner = Object.values(winners)[0]
-      setSuccessMsg(`Winner is ${winner}`)
-      setTournamentField('winner', winner)
-      handleTournamentFinish(winner)
+      handleTournamentFinish()
       return
     }
 
@@ -133,9 +124,9 @@ function Tournament() {
 
   const removePlayer = async (player) => {
     try {
+      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
       const newPlayersArray = players.filter(i => i !== player)
       setPlayers(newPlayersArray)
-      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)

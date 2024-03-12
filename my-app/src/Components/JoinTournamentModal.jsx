@@ -30,10 +30,10 @@ function JoinTournamentModal({ openJoin, handleCloseJoin, updateInviteCode, setP
         component: 'form'
       }}
     >
-      <DialogTitle>Join Tournament</DialogTitle>
+      <DialogTitle textAlign='center'>Join Tournament</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          You can press enter after each player to add multiple players.
+          Press enter after each player
         </DialogContentText>
         <TextField
           autoFocus

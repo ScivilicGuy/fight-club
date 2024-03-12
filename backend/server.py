@@ -9,7 +9,7 @@ from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
 import secrets
-from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
+from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 
 def defaultHandler(err):
@@ -32,9 +32,12 @@ app.config['JWT_SECRET_KEY'] = secrets.token_hex()
 app.register_error_handler(Exception, defaultHandler)
 jwt = JWTManager(app)
 
-@jwt.unauthorized_loader
-def unauthorized_callback(callback):
-    raise AccessError(description="You must be logged in to perform this action")
+@jwt.invalid_token_loader
+def invalid_token_handler(callback):
+    return jsonify({
+        'message': 'You must be logged in to perform this action',
+        'error': 'invalid_token'
+    }), 403
 
 
 @app.route('/register', methods=['POST']) 
@@ -94,7 +97,7 @@ def join_tournament():
     return add_players_to_tournament(data["code"], data["players"])
 
 @app.route('/tournament/<tournamentId>/start', methods=['POST'])
-@login_required
+@jwt_required()
 def start_tournament(tournamentId):
     data = request.get_json()
 
@@ -110,7 +113,7 @@ def start_tournament(tournamentId):
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
-@login_required
+@jwt_required()
 def start_next_round(tournamentId):
     data = request.get_json()
 
@@ -127,7 +130,7 @@ def start_next_round(tournamentId):
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/end', methods=['PUT'])
-@login_required
+@jwt_required()
 def end_tournament(tournamentId):
     data = request.get_json()
 
@@ -145,7 +148,7 @@ def view_tournament_matches_for_round(tournamentId, round):
     return {"matches": get_matches_for_round(tournamentId, round)}
 
 @app.route('/tournament/<tournamentId>/remove/player', methods=['DELETE'])
-@login_required
+@jwt_required()
 def remove_tournament_player(tournamentId):
     data = request.get_json()
 
