@@ -3,7 +3,7 @@ CREATE TABLE Users (
   username text NOT NULL,
   password text NOT NULL,
   email text NOT NULL
-)
+);
 
 CREATE TABLE Tournaments (
   tournamentId serial PRIMARY KEY,

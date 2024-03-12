@@ -33,6 +33,7 @@ export const apiFetch = async (route, method, data) => {
     if (method === 'GET') {
       res = await fetch(`http://localhost:${config.BACKEND_PORT}${route}`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           Accept: 'application/json'
         }
@@ -40,6 +41,7 @@ export const apiFetch = async (route, method, data) => {
     } else {
       res = await fetch(`http://localhost:${config.BACKEND_PORT}${route}`, {
         method,
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },

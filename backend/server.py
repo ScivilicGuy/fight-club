@@ -1,13 +1,14 @@
 from json import dumps
-from flask import Flask, request
+from flask import Flask, request, session
 from auth import authenticate_user, register_user
 from user import User
-from flask_login import LoginManager, login_required, login_user
-from error import InputError
+from flask_login import LoginManager, login_required, login_user, current_user
+from error import InputError, AccessError
 from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
+import secrets
 
 def defaultHandler(err):
     try:
@@ -25,6 +26,7 @@ def defaultHandler(err):
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['TRAP_HTTP_EXCEPTIONS'] = True
+app.config['SECRET_KEY'] = secrets.token_hex()
 app.register_error_handler(Exception, defaultHandler)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -32,6 +34,10 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    raise AccessError(description="User must be logged in to perform this action")
 
 @app.route('/register', methods=['POST']) 
 def register():
@@ -46,6 +52,11 @@ def login():
         user = User(user_id)
         login_user(user)
     return {}
+
+@app.route('/check/login', methods=['GET']) 
+def check_login():
+    print(session.items())
+    return {"logged_in": current_user.is_authenticated}
 
 @app.route('/tournament/create', methods=['POST'])
 @login_required
@@ -149,4 +160,4 @@ def remove_tournament_player(tournamentId):
 def leaderboard():
     return {"leaderboard": generate_leaderboard()}
 
-CORS(app) 
+CORS(app, supports_credentials=True) 

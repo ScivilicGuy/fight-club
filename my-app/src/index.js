@@ -7,6 +7,8 @@ import Landing from './Screens/Landing';
 import ViewTournaments from './Screens/ViewTournaments';
 import Tournament from './Screens/Tournament';
 import Leaderboard from './Screens/Leaderboard';
+import Register from './Screens/Register'
+import Login from './Screens/Login'
 import Banner from './Components/Banner';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -16,6 +18,8 @@ root.render(
       <Banner />
       <Routes>
         <Route exact path="/" element={<Landing />} />
+        <Route exact path="/register" element={<Register />} />
+        <Route exact path="/login" element={<Login />} />
         <Route exact path="/tournaments" element={<ViewTournaments />} />
         <Route exact path="/tournaments/:tournamentId" element={<Tournament />} />
         <Route path="/leaderboard" element={<Leaderboard />} />

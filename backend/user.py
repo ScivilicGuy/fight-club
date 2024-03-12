@@ -8,6 +8,7 @@ class User(UserMixin):
     @staticmethod
     def get(user_id):
         user_data = get_user_by_id(user_id)
+        print(user_data)
         if not user_data:
             return None
         return User(user_data['id'])  
