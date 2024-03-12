@@ -1,6 +1,6 @@
 from json import dumps
 from flask import Flask, jsonify, request, session
-from auth import authenticate_user, register_user
+from auth import authenticate_user, is_authorised_user, register_user
 from user import User
 from flask_login import LoginManager, login_required, login_user, current_user
 from error import InputError, AccessError
@@ -48,9 +48,10 @@ def register():
 @app.route('/login', methods=['POST']) 
 def login():
     data = request.get_json()
-    user_id = authenticate_user(data["username"], data["password"])
-    access_token = create_access_token(identity=user_id)
-    return {"access_token": access_token}
+    authenticate_user(data["username"], data["password"])
+    access_token = create_access_token(identity=data["username"])
+    return {"access_token": access_token, 
+            "username": data["username"]}
 
 @app.route('/logout', methods=['POST']) 
 @jwt_required()
@@ -73,7 +74,8 @@ def create_tournament():
     if data["state"] != States.SCHEDULED.name:
         raise InputError(description="Can only create a scheduled tournament")
     
-    return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"])}
+    creator = get_jwt_identity()
+    return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"], creator)}
 
 @app.route('/tournaments', methods=['GET'])
 def view_tournaments():
@@ -101,6 +103,11 @@ def join_tournament():
 def start_tournament(tournamentId):
     data = request.get_json()
 
+    # logged-in user must be tournament creator
+    user = get_jwt_identity()
+    if not is_authorised_user(tournamentId, user):
+        raise AccessError(description="Must be tournament creator to perform this action")
+    
     if not tournamentId.isdigit():
         raise InputError(description="Invalid tournament id")
     
@@ -109,7 +116,7 @@ def start_tournament(tournamentId):
     
     if not is_power_of_2(len(data["players"])):
         raise InputError(description="Number of players must be a power of 2 to start")
-    
+
     return create_matches(tournamentId, data["players"], data["round"])
 
 @app.route('/tournament/<tournamentId>/next/round', methods=['POST'])
@@ -117,6 +124,11 @@ def start_tournament(tournamentId):
 def start_next_round(tournamentId):
     data = request.get_json()
 
+    # logged-in user must be tournament creator
+    user = get_jwt_identity()
+    if not is_authorised_user(tournamentId, user):
+        raise AccessError(description="Must be tournament creator to perform this action")
+    
     if not tournamentId.isdigit():
         raise InputError(description="Invalid tournament id")
     
@@ -134,6 +146,11 @@ def start_next_round(tournamentId):
 def end_tournament(tournamentId):
     data = request.get_json()
 
+    # logged-in user must be tournament creator
+    user = get_jwt_identity()
+    if not is_authorised_user(tournamentId, user):
+        raise AccessError(description="Must be tournament creator to perform this action")
+    
     if not data["winner"]:
         raise InputError(description="Invalid winner - winner must not be empty")
     
@@ -152,6 +169,11 @@ def view_tournament_matches_for_round(tournamentId, round):
 def remove_tournament_player(tournamentId):
     data = request.get_json()
 
+    # logged-in user must be tournament creator
+    user = get_jwt_identity()
+    if not is_authorised_user(tournamentId, user):
+        raise AccessError(description="Must be tournament creator to perform this action")
+    
     if not tournamentId.isdigit():
         raise InputError(description="Invalid tournament id")
     

@@ -12,23 +12,32 @@ CREATE TABLE Tournaments (
   inviteCode varchar(6) NOT NULL,
   state text NOT NULL,
   round int DEFAULT 1,
-  winner text
+  winner text,
+  creator text NOT NULL
 );
 
 CREATE TABLE Players (
   playerName text,
-  tournamentId int REFERENCES Tournaments(tournamentId),
+  tournamentId int REFERENCES Tournaments(tournamentId) ON DELETE CASCADE,
   PRIMARY KEY (playerName, tournamentId)
 );
 
 CREATE TABLE Matches (
   matchId serial PRIMARY KEY,
-  tournamentId int REFERENCES Tournaments(tournamentId),
+  tournamentId int REFERENCES Tournaments(tournamentId) ON DELETE CASCADE,
   player1 text NOT NULL,
   player2 text NOT NULL,
   winner text,
   round int NOT NULL,
-  FOREIGN KEY (tournamentId, player1) REFERENCES Players(tournamentId, playerName),
-  FOREIGN KEY (tournamentId, player2) REFERENCES Players(tournamentId, playerName),
-  FOREIGN KEY (tournamentId, winner) REFERENCES Players(tournamentId, playerName)
+  FOREIGN KEY(tournamentId, player1) 
+    REFERENCES Players(tournamentId, playerName),
+  FOREIGN KEY(tournamentId, player2) 
+    REFERENCES Players(tournamentId, playerName),
+  FOREIGN KEY(tournamentId, winner) 
+    REFERENCES Players(tournamentId, playerName)
+);
+
+CREATE TABLE TournamentWins (
+  playerName text PRIMARY KEY,
+  wins int NOT NULL
 );

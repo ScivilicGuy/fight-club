@@ -6,7 +6,6 @@ import PlayerList from '../Components/PlayerList';
 import MatchesList from '../Components/MatchesList';
 import TournamentResult from '../Components/TournamentResult';
 import { States } from '../TournamentState'
-import { powerOf2 } from '../util';
 import InviteCodeModal from '../Components/InviteCodeModal';
 import SnackBarAlert from '../Components/SnackBarAlert';
 

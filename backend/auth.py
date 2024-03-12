@@ -1,4 +1,4 @@
-from error import InputError
+from error import InputError, AccessError
 from db import conn_pool
 from util import hash_password, isValidEmail
 
@@ -77,3 +77,24 @@ def get_user_by_id(user_id):
     conn_pool.putconn(conn)
 
   return user
+
+def is_authorised_user(tournamentId, username):
+  find_tournament = '''
+    SELECT creator
+    FROM Tournaments
+    WHERE (tournamentId = %s)
+  '''
+
+  is_authorised_user_bool = None
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(find_tournament, [tournamentId])
+      creator = cur.fetchone()[0]
+      is_authorised_user_bool = (creator == username)
+  except TypeError:
+    raise InputError(description="Invalid tournament ID")
+  finally:
+    conn_pool.putconn(conn)
+
+  return is_authorised_user_bool
