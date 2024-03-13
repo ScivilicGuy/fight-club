@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { Typography, Button, ButtonGroup, Box } from '@mui/material'
 import { apiFetch } from '../util'
 import { useParams } from 'react-router-dom'
@@ -7,7 +7,7 @@ import MatchesList from '../Components/MatchesList';
 import TournamentResult from '../Components/TournamentResult';
 import { STATES } from '../constants'
 import InviteCodeModal from '../Components/InviteCodeModal';
-import SnackBarAlert from '../Components/SnackBarAlert';
+import { AuthContext } from '../App';
 
 function Tournament() {
   const params = useParams()
@@ -27,10 +27,7 @@ function Tournament() {
   const [openInviteCode, setOpenInviteCode] = useState(false)
 
   /* success/error alerts */
-  const [openError, setOpenError] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
-  const [openSuccess, setOpenSuccess] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
+  const { setOpenError, setErrorMsg } = useContext(AuthContext) 
 
   useEffect(() => {
     (async () => {
@@ -170,8 +167,6 @@ function Tournament() {
 
   return (
     <>
-      <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
-      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <Typography variant='h2' align='center' gutterBottom>{tournament.name}</Typography>
       {renderTourneyState()}
       <InviteCodeModal open={openInviteCode} handleClose={handleCloseInviteCode} inviteCode={tournament.inviteCode} />

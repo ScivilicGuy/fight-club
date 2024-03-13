@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
-import SnackBarAlert from '../Components/SnackBarAlert';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -13,10 +12,10 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { AuthContext } from '../App';
 
 function Register() {
-  const [openError, setOpenError] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
+  const { setErrorMsg, setOpenError, setSuccessMsg, setOpenSuccess } = useContext(AuthContext)
 
   const navigate = useNavigate()
   const defaultTheme = createTheme();
@@ -30,6 +29,8 @@ function Register() {
         password: data.get('password'),
         email: data.get('email')
       })
+      setSuccessMsg('Registration successful!')
+      setOpenSuccess(true)
       navigate('/login')
     } catch (error) {
       setErrorMsg(error.message)
@@ -39,7 +40,6 @@ function Register() {
 
   return (
     <>
-      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <ThemeProvider theme={defaultTheme}>
         <Container component="main" maxWidth="xs">
           <CssBaseline />

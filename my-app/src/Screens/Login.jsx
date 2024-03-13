@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react'
 import { apiFetch } from '../util';
 import { useNavigate } from 'react-router-dom';
-import SnackBarAlert from '../Components/SnackBarAlert';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -19,9 +18,7 @@ import { TOKEN } from '../config.js'
 import { AuthContext } from '../App.js';
 
 function Login() {
-  const [openError, setOpenError] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
-  const { setIsLoggedIn } = useContext(AuthContext)
+  const { setIsLoggedIn, setErrorMsg, setOpenError, setSuccessMsg, setOpenSuccess } = useContext(AuthContext)
   const defaultTheme = createTheme();
   const navigate = useNavigate()
 
@@ -35,6 +32,8 @@ function Login() {
       })
       localStorage.setItem(TOKEN, res.access_token)
       setIsLoggedIn(true)
+      setSuccessMsg('Login successful!')
+      setOpenSuccess(true)
       navigate('/')
     } catch (error) {
       setErrorMsg(error.message)
@@ -44,7 +43,6 @@ function Login() {
 
   return (
     <>
-      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <ThemeProvider theme={defaultTheme}>
         <Container component="main" maxWidth="xs">
           <CssBaseline />

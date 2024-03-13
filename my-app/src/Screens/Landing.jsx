@@ -6,16 +6,13 @@ import TournamentBtn from '../Components/TournamentBtn';
 import JoinTournamentModal from '../Components/JoinTournamentModal';
 import CreateTournamentModal from '../Components/CreateTournamentModal';
 import { STATES } from '../constants'
-import SnackBarAlert from '../Components/SnackBarAlert';
+import { AuthContext } from '../App';
 
 const CODE_LENGTH = 6
 
 function Landing() {
   const navigate = useNavigate()
-  const [openSuccess, setOpenSuccess] = useState(false)
-  const [openError, setOpenError] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
-  const [errorMsg, setErrorMsg] = useState('')
+  const { setOpenError, setErrorMsg, setOpenSuccess, setSuccessMsg } = useContext(AuthContext) 
   const [openCreate, setOpenCreate] = useState(false)
   const [openJoin, setOpenJoin] = useState(false)
   const [tournament, setTournament] = useState({
@@ -108,8 +105,6 @@ function Landing() {
 
   return (
     <>
-      <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
-      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
         <Stack spacing={8}>
           {tourney_btns}
