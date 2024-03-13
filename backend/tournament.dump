@@ -13,7 +13,8 @@ CREATE TABLE Tournaments (
   state text NOT NULL,
   round int DEFAULT 1,
   winner text,
-  creator text NOT NULL
+  creator text NOT NULL,
+  isPrivate boolean NOT NULL
 );
 
 CREATE TABLE Players (

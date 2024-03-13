@@ -15,7 +15,7 @@ function ViewTournaments({ view }) {
       try {
         let res = null
         if (view === TOURNAMENT_VIEWS.PUBLIC) {
-          res = await apiFetch('tournaments', 'GET')
+          res = await apiFetch('tournaments/public', 'GET')
         } else if (view === TOURNAMENT_VIEWS.CREATED) {
           res = await apiFetch('tournaments/created', 'GET')
         } else {

@@ -7,10 +7,10 @@ from tournament_states import States
 # Creates a tournament in the database with given inputs
 # tournamentId field is auto-generated (serial) and the winner field is set to empty string
 # Errors can occur if any inputs are empty (they must all exist)
-def add_tournament(name: string, desc: string, inviteCode: string, state: string, creator: string):
+def add_tournament(name: string, desc: string, inviteCode: string, state: string, creator: string, isPrivate: bool):
   insert_tournament = '''
-    INSERT INTO Tournaments (name, description, inviteCode, state, creator)
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO Tournaments (name, description, inviteCode, state, creator, isPrivate)
+    VALUES (%s, %s, %s, %s, %s, %s)
     RETURNING tournamentId
   '''
 
@@ -18,7 +18,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
   try:
     conn = conn_pool.getconn()
     with conn.cursor() as cur:
-      cur.execute(insert_tournament, [name, desc, inviteCode, state, creator])
+      cur.execute(insert_tournament, [name, desc, inviteCode, state, creator, isPrivate])
       tournamentId = cur.fetchone()[0]
       conn.commit()
   except:
@@ -52,7 +52,9 @@ def get_tournaments():
           'inviteCode': tournament[3],
           'state': tournament[4],
           'round': tournament[5],
-          'winner': tournament[6]
+          'winner': tournament[6],
+          'creator': tournament[7],
+          'isPrivate': tournament[8]
         })
   except:
     print("ERROR: problem occurred when retrieving all tournament info")
@@ -62,6 +64,40 @@ def get_tournaments():
       conn_pool.putconn(conn)
 
   return tournaments
+
+def get_public_tournaments():
+  retrieve_public_tournaments = '''
+    SELECT * 
+    FROM Tournaments
+    WHERE isPrivate = FALSE
+  '''
+
+  publicTournaments = []
+
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(retrieve_public_tournaments, [])
+      for tournament in cur.fetchall():
+        publicTournaments.append({
+          'id': tournament[0],
+          'name': tournament[1],
+          'desc': tournament[2],
+          'inviteCode': tournament[3],
+          'state': tournament[4],
+          'round': tournament[5],
+          'winner': tournament[6],
+          'creator': tournament[7],
+          'isPrivate': tournament[8]
+        })
+  except:
+    print("ERROR: problem occurred when retrieving all tournament info")
+    raise AccessError("ERROR: problem occurred when retrieving all tournament info")
+  finally: 
+    if conn:
+      conn_pool.putconn(conn)
+
+  return publicTournaments
 
 # Returns a list of tournaments that the given user has joined
 def get_joined_tournaments(user: string):
@@ -113,7 +149,9 @@ def get_created_tournaments(user: string):
           'inviteCode': tournament[3],
           'state': tournament[4],
           'round': tournament[5],
-          'winner': tournament[6]
+          'winner': tournament[6],
+          'creator': tournament[7],
+          'isPrivate': tournament[8]
         })
   except:
     raise AccessError("ERROR: problem occurred when retrieving all info related to tournaments created by user")

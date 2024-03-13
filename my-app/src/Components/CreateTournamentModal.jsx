@@ -1,15 +1,16 @@
 import React from 'react'
-import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Checkbox, FormControl } from '@mui/material';
 
-function CreateTournamentModal({ openCreate, handleCloseCreate, handleSubmit, updateTournamentField }) {
+function CreateTournamentModal({ openCreate, handleCloseCreate, handleSubmit, updateTournamentField, handleCheckBoxChange }) {
   return (
     <Dialog
-        open={openCreate}
-        onClose={handleCloseCreate}
-        PaperProps={{
-          component: 'form'
-        }}
-      >
+      open={openCreate}
+      onClose={handleCloseCreate}
+      PaperProps={{
+        component: 'form'
+      }}
+    >
+      <FormControl>
         <DialogTitle>Create Tournament</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -39,11 +40,17 @@ function CreateTournamentModal({ openCreate, handleCloseCreate, handleSubmit, up
             variant="standard"
             onChange={updateTournamentField}
           />
+          <FormControlLabel
+            control={<Checkbox onChange={handleCheckBoxChange} />}
+            label="Is Private"
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseCreate}>Cancel</Button>
           <Button onClick={handleSubmit}>Create</Button>
         </DialogActions>
+      </FormControl>
+        
     </Dialog>
   )
 }

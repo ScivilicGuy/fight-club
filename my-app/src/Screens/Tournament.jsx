@@ -168,6 +168,7 @@ function Tournament() {
   return (
     <>
       <Typography variant='h2' align='center' gutterBottom>{tournament.name}</Typography>
+      <Typography variant='h5' align='center' sx={{ marginBottom: 4 }}>{tournament.desc}</Typography>
       {renderTourneyState()}
       <InviteCodeModal open={openInviteCode} handleClose={handleCloseInviteCode} inviteCode={tournament.inviteCode} />
     </>

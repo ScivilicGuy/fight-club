@@ -1,15 +1,13 @@
 from json import dumps
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request
 from auth import authenticate_user, is_authorised_user, register_user
-from user import User
-from flask_login import LoginManager, login_required, login_user, current_user
 from error import InputError, AccessError
-from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_created_tournaments, get_joined_tournaments, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
+from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_created_tournaments, get_joined_tournaments, get_matches, get_matches_for_round, get_public_tournaments, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
 import secrets
-from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, \
+from flask_jwt_extended import create_access_token, get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 
 def defaultHandler(err):
@@ -74,12 +72,19 @@ def create_tournament():
     if data["state"] != States.SCHEDULED.value:
         raise InputError(description="Can only create a tournament in a scheduled state")
     
+    if not isinstance(data["isPrivate"], bool):
+        raise InputError(description="Invalid isPrivate value for tournament creation")
+    
     creator = get_jwt_identity()
-    return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"], creator)}
+    return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"], creator, data["isPrivate"])}
 
 @app.route('/tournaments', methods=['GET'])
 def view_tournaments():
     return {'tournaments': get_tournaments()}
+
+@app.route('/tournaments/public', methods=['GET'])
+def view_public_tournaments():
+    return {'tournaments': get_public_tournaments()}
 
 @app.route('/tournament/<tournamentId>', methods=['GET'])
 def view_tournament(tournamentId):

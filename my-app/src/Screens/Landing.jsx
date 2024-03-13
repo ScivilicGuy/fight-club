@@ -19,7 +19,8 @@ function Landing() {
     name: '',
     desc: '',
     inviteCode: makeid(CODE_LENGTH),
-    state: STATES.SCHEDULED
+    state: STATES.SCHEDULED,
+    isPrivate: false
   })
   
   const [inviteCode, setInviteCode]= useState('')
@@ -77,7 +78,7 @@ function Landing() {
   const tourney_btns = [
     <TournamentBtn key={'create-tournament-btn'} action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
     <TournamentBtn key={'join-tournament-btn'} action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
-    <TournamentBtn key={'view-tournaments-btn'} action={viewPublicTournaments} title={'View Tournaments'}></TournamentBtn>,
+    <TournamentBtn key={'view-tournaments-btn'} action={viewPublicTournaments} title={'Public Tournaments'}></TournamentBtn>,
     <TournamentBtn key={'view-joined-tournaments-btn'} action={viewJoinedTournaments} title={'Joined Tournaments'}></TournamentBtn>,
     <TournamentBtn key={'my-tournaments-btn'} action={viewMyTournaments} title={'My Tournaments'}></TournamentBtn>,
     <TournamentBtn key={'view-leaderboard-btn'} action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
@@ -96,7 +97,11 @@ function Landing() {
 
   const updateTournamentField = (e) => {
     const { name, value } = e.target
-    setTournament({ ...tournament, [name]: value.trim() })
+    setTournament(prevState => ({ ...prevState, [name]: value.trim() }))
+  }
+
+  const handleCheckBoxChange = (e) => {
+    setTournament(prevState => ({ ...prevState, isPrivate: e.target.checked }))
   }
 
   const updateInviteCode = (e) => {
@@ -110,8 +115,20 @@ function Landing() {
           {tourney_btns}
         </Stack>   
       </div>     
-      <CreateTournamentModal openCreate={openCreate} handleCloseCreate={handleCloseCreate} handleSubmit={handleSubmit} updateTournamentField={updateTournamentField} ></CreateTournamentModal>
-      <JoinTournamentModal openJoin={openJoin} handleCloseJoin={handleCloseJoin} updateInviteCode={updateInviteCode} setPlayers={setPlayers} players={players} joinTournament={joinTournament}></JoinTournamentModal>
+      <CreateTournamentModal 
+        openCreate={openCreate} 
+        handleCloseCreate={handleCloseCreate} 
+        handleSubmit={handleSubmit} 
+        updateTournamentField={updateTournamentField} 
+        handleCheckBoxChange={handleCheckBoxChange} 
+      />
+      <JoinTournamentModal 
+        openJoin={openJoin} 
+        handleCloseJoin={handleCloseJoin} 
+        updateInviteCode={updateInviteCode} 
+        setPlayers={setPlayers} players={players} 
+        joinTournament={joinTournament} 
+      />
    </>
   )
 }
