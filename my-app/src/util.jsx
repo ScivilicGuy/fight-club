@@ -1,4 +1,5 @@
 import config from './config.json'
+import { TOKEN } from './config.js'
 
 export const makeid = (length) => {
   let result = '';
@@ -34,14 +35,17 @@ export const apiFetch = async (route, method, data) => {
       res = await fetch(`http://localhost:${config.BACKEND_PORT}${route}`, {
         method: 'GET',
         headers: {
-          Accept: 'application/json'
+          Accept: 'application/json',
+          Authorization: `Bearer ${localStorage.getItem(TOKEN)}`
         }
       })
     } else {
       res = await fetch(`http://localhost:${config.BACKEND_PORT}${route}`, {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${localStorage.getItem(TOKEN)}`
         },
         body: data ? JSON.stringify(data) : null
       })

@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { Typography, Button, ButtonGroup, Box } from '@mui/material'
 import { apiFetch } from '../util'
 import { useParams } from 'react-router-dom'
 import PlayerList from '../Components/PlayerList';
 import MatchesList from '../Components/MatchesList';
 import TournamentResult from '../Components/TournamentResult';
-import { States } from '../TournamentState'
-import { powerOf2 } from '../util';
+import { STATES } from '../constants'
 import InviteCodeModal from '../Components/InviteCodeModal';
-import SnackBarAlert from '../Components/SnackBarAlert';
+import { AuthContext } from '../App';
 
 function Tournament() {
   const params = useParams()
@@ -28,10 +27,7 @@ function Tournament() {
   const [openInviteCode, setOpenInviteCode] = useState(false)
 
   /* success/error alerts */
-  const [openError, setOpenError] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
-  const [openSuccess, setOpenSuccess] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
+  const { setOpenError, setErrorMsg } = useContext(AuthContext) 
 
   useEffect(() => {
     (async () => {
@@ -49,10 +45,10 @@ function Tournament() {
   useEffect(() => {
     (async () => {
       try {
-        if (tournament.state === States.STARTED) {
+        if (tournament.state === STATES.STARTED) {
           const res = await apiFetch(`tournament/${tournamentId}/matches/${tournament.round}`, 'GET')
           setMatches(res.matches)
-        } else if (tournament.state === States.FINISHED) {
+        } else if (tournament.state === STATES.FINISHED) {
           const res = await apiFetch(`tournament/${tournamentId}/matches`, 'GET')
           setMatches(res.matches)
         }
@@ -76,16 +72,9 @@ function Tournament() {
   }
 
   const handleTournamentStart = async () => {
-    const numPlayers = players.length
-    if (!powerOf2(numPlayers)) {
-      setOpenError(true)
-      setErrorMsg('ERROR: Number of players must be a power of 2!')
-      return 
-    }
-
     try {
       await apiFetch(`tournament/${params.tournamentId}/start`, 'POST', {'players': players, 'round': tournament.round})
-      setTournamentField('state', States.STARTED)
+      setTournamentField('state', STATES.STARTED)
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
@@ -94,8 +83,10 @@ function Tournament() {
 
   const handleTournamentFinish = async () => {
     try {
-      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': Object.entries(winners)[0]})
-      setTournamentField('state', States.FINISHED)
+      const winnerEntry = Object.entries(winners)[0]
+      await apiFetch(`tournament/${params.tournamentId}/end`, 'PUT', {'winner': winnerEntry})
+      setTournamentField('state', STATES.FINISHED)
+      setTournamentField('winner', winnerEntry[1])
       setWinners({})
     } catch (error) {
       setOpenError(true)
@@ -112,11 +103,7 @@ function Tournament() {
     }
 
     if (Object.keys(winners).length === 1) {
-      setOpenSuccess(true)
-      const winner = Object.values(winners)[0]
-      setSuccessMsg(`Winner is ${winner}`)
-      setTournamentField('winner', winner)
-      handleTournamentFinish(winner)
+      handleTournamentFinish()
       return
     }
 
@@ -133,9 +120,9 @@ function Tournament() {
 
   const removePlayer = async (player) => {
     try {
+      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
       const newPlayersArray = players.filter(i => i !== player)
       setPlayers(newPlayersArray)
-      await apiFetch(`tournament/${params.tournamentId}/remove/player`, 'DELETE', {'player': player})
     } catch (error) {
       setOpenError(true)
       setErrorMsg(error.message)
@@ -143,7 +130,7 @@ function Tournament() {
   }
 
   const renderTourneyState = () => {
-    if (tournament.state === States.SCHEDULED) {
+    if (tournament.state === STATES.SCHEDULED) {
       return ( 
         <>
           <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem'}}>
@@ -155,7 +142,7 @@ function Tournament() {
           <PlayerList players={players} removePlayer={removePlayer}></PlayerList>
         </>
       )
-    } else if (tournament.state === States.STARTED) {
+    } else if (tournament.state === STATES.STARTED) {
       let msg = 'Start Next Round'
       if (matches.length === 1) {
         msg = 'Finish Tournament'
@@ -168,7 +155,7 @@ function Tournament() {
           <MatchesList matches={matches} winners={winners} setWinners={setWinners}></MatchesList>
         </>
       )
-    } else if (tournament.state === States.FINISHED) {
+    } else if (tournament.state === STATES.FINISHED) {
       return <TournamentResult winner={tournament.winner} matches={matches}></TournamentResult>
     } else if (tournament.state === '') {
       return <></>
@@ -180,8 +167,6 @@ function Tournament() {
 
   return (
     <>
-      <SnackBarAlert severity={'success'} open={openSuccess} setOpen={setOpenSuccess} msg={successMsg}/>
-      <SnackBarAlert severity={'error'} open={openError} setOpen={setOpenError} msg={errorMsg}/>
       <Typography variant='h2' align='center' gutterBottom>{tournament.name}</Typography>
       {renderTourneyState()}
       <InviteCodeModal open={openInviteCode} handleClose={handleCloseInviteCode} inviteCode={tournament.inviteCode} />

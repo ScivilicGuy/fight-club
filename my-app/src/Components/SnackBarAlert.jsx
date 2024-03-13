@@ -14,7 +14,7 @@ function SnackBarAlert({ severity, open, setOpen, msg }) {
     <div>
       <Snackbar 
         open={open} 
-        autoHideDuration={1000} 
+        autoHideDuration={1500} 
         onClose={handleClose} 
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >

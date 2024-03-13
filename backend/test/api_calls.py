@@ -26,7 +26,7 @@ def view_tournaments():
 def view_tournament(tournamentId):
     return _process_res(requests.get, f"/tournament/{tournamentId}")
 
-def create_tournament(name, desc, inviteCode, numTeams, format):
+def create_tournament(name, desc, inviteCode, state, round):
     return _process_res(
         requests.post, 
         "/tournament/create",
@@ -34,17 +34,17 @@ def create_tournament(name, desc, inviteCode, numTeams, format):
             name=name,
             desc=desc,
             inviteCode=inviteCode,
-            numTeams=numTeams,
-            format=format
+            state=state,
+            round=round
         )
     )
 
-def join_tournament(code, playerName):
+def join_tournament(code, players):
     return _process_res(
         requests.post,
         "/tournament/join",
         json=dict(
             code=code,
-            playerName=playerName
+            players=players
         )
     )

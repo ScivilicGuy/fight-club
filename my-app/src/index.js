@@ -2,25 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Landing from './Screens/Landing';
-import ViewTournaments from './Screens/ViewTournaments';
-import Tournament from './Screens/Tournament';
-import Leaderboard from './Screens/Leaderboard';
-import Banner from './Components/Banner';
+import App from './App'
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Banner />
-      <Routes>
-        <Route exact path="/" element={<Landing />} />
-        <Route exact path="/tournaments" element={<ViewTournaments />} />
-        <Route exact path="/tournaments/:tournamentId" element={<Tournament />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-      </Routes>
-    </BrowserRouter>
+    <App />
   </React.StrictMode>
 );
 

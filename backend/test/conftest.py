@@ -1,6 +1,7 @@
 import pytest
-from connect import connect
+from db import conn_pool
 from api_calls import create_tournament
+from tournament_states import States
 
 DUMMY_INV_CODE = '0'
 DELETE_TOURNAMENTS_TABLE = "DELETE FROM tournaments" 
@@ -9,23 +10,22 @@ DELETE_PLAYERS_TABLE = "DELETE FROM players"
 # clears table before and after test
 @pytest.fixture
 def db_conn():
-    conn = connect()
+    conn = conn_pool()
     if not conn:
         print("Failed to connect to database.")
         assert False
-    cur = conn.cursor()
-    cur.execute(DELETE_PLAYERS_TABLE)
-    cur.execute(DELETE_TOURNAMENTS_TABLE)
-    conn.commit()
+    with conn.cursor() as cur:
+        cur.execute(DELETE_PLAYERS_TABLE)
+        cur.execute(DELETE_TOURNAMENTS_TABLE)
+        conn.commit()
 
-    yield cur
+        yield cur
 
-    # teardown
-    cur.execute(DELETE_PLAYERS_TABLE)
-    cur.execute(DELETE_TOURNAMENTS_TABLE)
-    conn.commit()
-    cur.close()
-    conn.close()
+        # teardown
+        cur.execute(DELETE_PLAYERS_TABLE)
+        cur.execute(DELETE_TOURNAMENTS_TABLE)
+        conn.commit()
+    conn_pool.putconn(conn)
 
 # tournament data must be in order name, desc, invite_code, num_teams, format
 @pytest.fixture
@@ -34,8 +34,8 @@ def base_tournament():
         name="Test",
         desc="Test",
         inviteCode=DUMMY_INV_CODE,
-        numTeams=4,
-        format="Test"
+        state=States.SCHEDULED,
+        round=1
     )
 
 @pytest.fixture
@@ -46,15 +46,15 @@ def multiple_tournaments(base_tournament):
             name="Test1", 
             desc="", 
             inviteCode=DUMMY_INV_CODE,
-            numTeams=8,
-            format="Round Robin"
+            state=States.SCHEDULED,
+            round=1
         ),
         dict(
             name="Test2",
             desc="",
             inviteCode=DUMMY_INV_CODE,
-            numTeams=8,
-            format="Knockout"
+            state=States.SCHEDULED,
+            round=1
         )
     )
 

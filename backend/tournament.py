@@ -7,10 +7,10 @@ from tournament_states import States
 # Creates a tournament in the database with given inputs
 # tournamentId field is auto-generated (serial) and the winner field is set to empty string
 # Errors can occur if any inputs are empty (they must all exist)
-def add_tournament(name: string, desc: string, inviteCode: string, state: string):
+def add_tournament(name: string, desc: string, inviteCode: string, state: string, creator: string):
   insert_tournament = '''
-    INSERT INTO Tournaments (name, description, inviteCode, state)
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO Tournaments (name, description, inviteCode, state, creator)
+    VALUES (%s, %s, %s, %s, %s)
     RETURNING tournamentId
   '''
 
@@ -18,7 +18,7 @@ def add_tournament(name: string, desc: string, inviteCode: string, state: string
   try:
     conn = conn_pool.getconn()
     with conn.cursor() as cur:
-      cur.execute(insert_tournament, [name, desc, inviteCode, state])
+      cur.execute(insert_tournament, [name, desc, inviteCode, state, creator])
       tournamentId = cur.fetchone()[0]
       conn.commit()
   except:
@@ -62,6 +62,67 @@ def get_tournaments():
       conn_pool.putconn(conn)
 
   return tournaments
+
+# Returns a list of tournaments that the given user has joined
+def get_joined_tournaments(user: string):
+  retrieve_joined_tournaments = '''
+    SELECT (t.tournamentId, name, description, inviteCode, state, round, winner) 
+    FROM Tournaments t JOIN Players p ON (t.tournamentId = p.tournamentId)
+    WHERE (p.playerName = %s)
+  '''
+
+  joined_tournaments = []
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(retrieve_joined_tournaments, [user])
+      for tournament in cur.fetchall():
+        joined_tournaments.append({
+          'id': tournament[0],
+          'name': tournament[1],
+          'desc': tournament[2],
+          'inviteCode': tournament[3],
+          'state': tournament[4],
+          'round': tournament[5],
+          'winner': tournament[6]
+        })
+  finally: 
+    if conn:
+      conn_pool.putconn(conn)
+
+  return joined_tournaments
+
+# retrieves all tournaments that given user has created
+def get_created_tournaments(user: string):
+  retrieve_tournaments_created_by_user = '''
+    SELECT * 
+    FROM Tournaments
+    WHERE creator = %s
+  '''
+
+  tournaments_created_by_user = []
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(retrieve_tournaments_created_by_user, [user])
+      for tournament in cur.fetchall():
+        tournaments_created_by_user.append({
+          'id': tournament[0],
+          'name': tournament[1],
+          'desc': tournament[2],
+          'inviteCode': tournament[3],
+          'state': tournament[4],
+          'round': tournament[5],
+          'winner': tournament[6]
+        })
+  except:
+    raise AccessError("ERROR: problem occurred when retrieving all info related to tournaments created by user")
+  finally: 
+    if conn:
+      conn_pool.putconn(conn)
+
+  return tournaments_created_by_user
+
 
 # retrieve data for a select tournament (including players that have joined it)
 # returns a dictionary
@@ -143,7 +204,7 @@ def add_players_to_tournament(code: string, players: list):
       state = res[1]
 
       # can only join tournaments that haven't started
-      if state == States.SCHEDULED.name:
+      if state == States.SCHEDULED.value:
         cur.execute(count_existing_players, [tournamentId])
         if cur.fetchone()[0] < 16:
           for player in players:
@@ -157,7 +218,7 @@ def add_players_to_tournament(code: string, players: list):
     if conn:
       conn_pool.putconn(conn)
   
-  if state != States.SCHEDULED.name:
+  if state != States.SCHEDULED.value:
     raise InputError(description="Tournament has already started/finished")
 
   return {}
@@ -289,6 +350,24 @@ def finish_tournament(tournamentId, winner):
     SET winner = %s
     WHERE (matchId = %s)
   '''
+
+  exists_on_leaderboard = '''
+    SELECT wins 
+    FROM TournamentWins
+    WHERE (playerName = %s)
+  '''
+
+  insert_into_leaderboard = '''
+    INSERT INTO TournamentWins (playerName, wins)
+    VALUES (%s, 1)
+  '''
+
+  update_leaderboard = '''
+    UPDATE TournamentWins
+    SET wins = %s
+    WHERE (playerName = %s)
+  '''
+  
   match_id = winner[0]
   player_name = winner[1]
 
@@ -297,6 +376,15 @@ def finish_tournament(tournamentId, winner):
     with conn.cursor() as cur:
       cur.execute(update_tournament_winner, [player_name, tournamentId])
       cur.execute(update_match_winner, [player_name, match_id])
+      cur.execute(exists_on_leaderboard, [player_name])
+      res = cur.fetchone()
+      if res:
+        # player already on leaderboard
+        wins = res[0]
+        cur.execute(update_leaderboard, [wins+1, player_name])
+      else:
+        # player not on leaderboard
+        cur.execute(insert_into_leaderboard, [player_name])
       conn.commit()
   except TypeError:
     raise InputError(description="ERROR: problem occurred when setting the tournament winner")
@@ -329,37 +417,28 @@ def remove_player_from_tournament(tournamentId, playerName):
 
 # retrieves the players with the most tournament wins (top 10)
 def generate_leaderboard():
-  get_tournament_winners = '''
-    SELECT winner 
-    FROM Tournaments
-    WHERE winner != ''
+  get_top_ten = '''
+    SELECT playerName 
+    FROM TournamentWins
+    ORDER BY wins DESC
+    LIMIT 10
   '''
 
-  tournament_winners = []
+  top_ten_players = []
   try: 
     conn = conn_pool.getconn()
     with conn.cursor() as cur:
-      cur.execute(get_tournament_winners, [])
+      cur.execute(get_top_ten, [])
       res = cur.fetchall()
       for i in res:
-        tournament_winners.append(i[0])
+        top_ten_players.append(i[0])
   except:
     raise InputError(description="Problem occurred when getting tournament winners")
   finally:
     if conn:
       conn_pool.putconn(conn)
-  
-  # count number of wins for each player
-  leaderboard = {}
-  for winner in tournament_winners:
-    if winner in leaderboard:
-      leaderboard[winner] += 1
-    else:
-      leaderboard[winner] = 1
 
-  # sort players to find top 10
-  sorted_top_ten_leaderboard = sorted(leaderboard.items(), key=lambda x:x[1], reverse=True)[:10]
-  return sorted_top_ten_leaderboard
+  return top_ten_players
 
 
 
