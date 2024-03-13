@@ -35,7 +35,8 @@ export const apiFetch = async (route, method, data) => {
       res = await fetch(`http://localhost:${config.BACKEND_PORT}${route}`, {
         method: 'GET',
         headers: {
-          Accept: 'application/json'
+          Accept: 'application/json',
+          Authorization: `Bearer ${localStorage.getItem(TOKEN)}`
         }
       })
     } else {

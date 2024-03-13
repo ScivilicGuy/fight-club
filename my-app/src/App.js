@@ -8,6 +8,7 @@ import Leaderboard from './Screens/Leaderboard';
 import Register from './Screens/Register'
 import Login from './Screens/Login'
 import Banner from './Components/Banner';
+import { TOURNAMENT_VIEWS } from './constants';
 
 export const AuthContext = createContext();
 
@@ -22,7 +23,9 @@ function App() {
           <Route exact path="/" element={<Landing />} />
           <Route exact path="/register" element={<Register />} />
           <Route exact path="/login" element={<Login />} />
-          <Route exact path="/tournaments" element={<ViewTournaments />} />
+          <Route exact path="/tournaments" element={<ViewTournaments view={TOURNAMENT_VIEWS.PUBLIC}/>} />
+          <Route exact path="/my/tournaments" element={<ViewTournaments view={TOURNAMENT_VIEWS.CREATED}/>} />
+          <Route exact path="/joined/tournaments" element={<ViewTournaments view={TOURNAMENT_VIEWS.JOINED}/>} />
           <Route exact path="/tournaments/:tournamentId" element={<Tournament />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>

@@ -4,7 +4,7 @@ from auth import authenticate_user, is_authorised_user, register_user
 from user import User
 from flask_login import LoginManager, login_required, login_user, current_user
 from error import InputError, AccessError
-from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
+from tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_created_tournaments, get_joined_tournaments, get_matches, get_matches_for_round, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
 from tournament_states import States
 from util import is_power_of_2
@@ -71,8 +71,8 @@ def create_tournament():
         raise InputError(description="All fields should be non-empty to create a tournament")
     
     # a new tournament should be in a scheduled state only
-    if data["state"] != States.SCHEDULED.name:
-        raise InputError(description="Can only create a scheduled tournament")
+    if data["state"] != States.SCHEDULED.value:
+        raise InputError(description="Can only create a tournament in a scheduled state")
     
     creator = get_jwt_identity()
     return {'tournamentId': add_tournament(data["name"], data["desc"], data["inviteCode"], data["state"], creator)}
@@ -85,7 +85,20 @@ def view_tournaments():
 def view_tournament(tournamentId):
     return {'tournament': get_tournament(tournamentId)}
 
+@app.route('/tournaments/joined', methods=['GET'])
+@jwt_required()
+def view_joined_tournaments():
+    user = get_jwt_identity()
+    return {'tournaments': get_joined_tournaments(user)}
+
+@app.route('/tournaments/created', methods=['GET'])
+@jwt_required()
+def view_created_tournaments():
+    user = get_jwt_identity()
+    return {'tournaments': get_created_tournaments(user)}
+
 @app.route('/tournament/join', methods=['POST'])
+@jwt_required()
 def join_tournament():
     data = request.get_json()
     

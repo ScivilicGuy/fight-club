@@ -63,6 +63,67 @@ def get_tournaments():
 
   return tournaments
 
+# Returns a list of tournaments that the given user has joined
+def get_joined_tournaments(user: string):
+  retrieve_joined_tournaments = '''
+    SELECT (t.tournamentId, name, description, inviteCode, state, round, winner) 
+    FROM Tournaments t JOIN Players p ON (t.tournamentId = p.tournamentId)
+    WHERE (p.playerName = %s)
+  '''
+
+  joined_tournaments = []
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(retrieve_joined_tournaments, [user])
+      for tournament in cur.fetchall():
+        joined_tournaments.append({
+          'id': tournament[0],
+          'name': tournament[1],
+          'desc': tournament[2],
+          'inviteCode': tournament[3],
+          'state': tournament[4],
+          'round': tournament[5],
+          'winner': tournament[6]
+        })
+  finally: 
+    if conn:
+      conn_pool.putconn(conn)
+
+  return joined_tournaments
+
+# retrieves all tournaments that given user has created
+def get_created_tournaments(user: string):
+  retrieve_tournaments_created_by_user = '''
+    SELECT * 
+    FROM Tournaments
+    WHERE creator = %s
+  '''
+
+  tournaments_created_by_user = []
+  try:
+    conn = conn_pool.getconn()
+    with conn.cursor() as cur:
+      cur.execute(retrieve_tournaments_created_by_user, [user])
+      for tournament in cur.fetchall():
+        tournaments_created_by_user.append({
+          'id': tournament[0],
+          'name': tournament[1],
+          'desc': tournament[2],
+          'inviteCode': tournament[3],
+          'state': tournament[4],
+          'round': tournament[5],
+          'winner': tournament[6]
+        })
+  except:
+    raise AccessError("ERROR: problem occurred when retrieving all info related to tournaments created by user")
+  finally: 
+    if conn:
+      conn_pool.putconn(conn)
+
+  return tournaments_created_by_user
+
+
 # retrieve data for a select tournament (including players that have joined it)
 # returns a dictionary
 # error occurs if tournament does not exist
@@ -143,7 +204,7 @@ def add_players_to_tournament(code: string, players: list):
       state = res[1]
 
       # can only join tournaments that haven't started
-      if state == States.SCHEDULED.name:
+      if state == States.SCHEDULED.value:
         cur.execute(count_existing_players, [tournamentId])
         if cur.fetchone()[0] < 16:
           for player in players:
@@ -157,7 +218,7 @@ def add_players_to_tournament(code: string, players: list):
     if conn:
       conn_pool.putconn(conn)
   
-  if state != States.SCHEDULED.name:
+  if state != States.SCHEDULED.value:
     raise InputError(description="Tournament has already started/finished")
 
   return {}

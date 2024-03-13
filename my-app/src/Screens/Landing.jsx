@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import TournamentBtn from '../Components/TournamentBtn';
 import JoinTournamentModal from '../Components/JoinTournamentModal';
 import CreateTournamentModal from '../Components/CreateTournamentModal';
-import { States } from '../TournamentState'
+import { STATES } from '../constants'
 import SnackBarAlert from '../Components/SnackBarAlert';
 
 const CODE_LENGTH = 6
@@ -22,7 +22,7 @@ function Landing() {
     name: '',
     desc: '',
     inviteCode: makeid(CODE_LENGTH),
-    state: States.SCHEDULED
+    state: STATES.SCHEDULED
   })
   
   const [inviteCode, setInviteCode]= useState('')
@@ -44,8 +44,16 @@ function Landing() {
     setOpenJoin(false);
   };
 
-  const viewTournaments = () => {
+  const viewPublicTournaments = () => {
     navigate('/tournaments')
+  }
+
+  const viewMyTournaments = () => {
+    navigate('/my/tournaments')
+  }
+
+  const viewJoinedTournaments = () => {
+    navigate('/joined/tournaments')
   }
 
   const viewLeaderboards = () => {
@@ -72,7 +80,9 @@ function Landing() {
   const tourney_btns = [
     <TournamentBtn key={'create-tournament-btn'} action={handleOpenCreate} title={'Create Tournament'}></TournamentBtn>,
     <TournamentBtn key={'join-tournament-btn'} action={handleOpenJoin} title={'Join Tournament'}></TournamentBtn>,
-    <TournamentBtn key={'view-tournaments-btn'} action={viewTournaments} title={'View Tournaments'}></TournamentBtn>,
+    <TournamentBtn key={'view-tournaments-btn'} action={viewPublicTournaments} title={'View Tournaments'}></TournamentBtn>,
+    <TournamentBtn key={'view-joined-tournaments-btn'} action={viewJoinedTournaments} title={'Joined Tournaments'}></TournamentBtn>,
+    <TournamentBtn key={'my-tournaments-btn'} action={viewMyTournaments} title={'My Tournaments'}></TournamentBtn>,
     <TournamentBtn key={'view-leaderboard-btn'} action={viewLeaderboards} title={'Leaderboards'}></TournamentBtn>
   ]
 
