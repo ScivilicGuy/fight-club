@@ -18,6 +18,14 @@ Then we install dependencies.
 
 ```pip install -r requirements.txt```
 
+To setup database, make sure to set database.ini file with your own configuration values. 
+
+Then we create a database in postgresql with same name as what you put in your database.ini file.
+
+Exit postgresql and then load in the dump file to create the tables in terminal.
+
+```psql -d {your-db-name} -U {your-postgresql-user} -f tournament.dump```
+
 Finally, run the server
 
 ```flask --app server run```
