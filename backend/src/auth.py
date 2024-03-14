@@ -1,6 +1,6 @@
-from backend.src.error import InputError, AccessError
-from backend.src.db import conn_pool
-from backend.src.util import hash_password, isValidEmail
+from src.error import InputError, AccessError
+from src.db import conn_pool
+from src.util import hash_password, isValidEmail
 
 def register_user(username, password, email):
   check_for_duplicate_data = '''

@@ -1,8 +1,8 @@
 import string
-from backend.src.error import AccessError, InputError
-from backend.src.util import create_random_pairs
-from backend.src.db import conn_pool
-from backend.src.tournament_states import States
+from src.error import AccessError, InputError
+from src.util import create_random_pairs
+from src.db import conn_pool
+from src.tournament_states import States
 
 # Creates a tournament in the database with given inputs
 # tournamentId field is auto-generated (serial) and the winner field is set to empty string

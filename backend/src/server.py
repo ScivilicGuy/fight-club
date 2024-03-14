@@ -1,11 +1,11 @@
 from json import dumps
 from flask import Flask, jsonify, request
-from backend.src.auth import authenticate_user, is_authorised_user, register_user
-from backend.src.error import InputError, AccessError
-from backend.src.tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_created_tournaments, get_joined_tournaments, get_matches, get_matches_for_round, get_public_tournaments, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
+from src.auth import authenticate_user, is_authorised_user, register_user
+from src.error import InputError, AccessError
+from src.tournament import add_players_to_tournament, add_tournament, create_matches, finish_tournament, generate_leaderboard, get_created_tournaments, get_joined_tournaments, get_matches, get_matches_for_round, get_public_tournaments, get_tournament, get_tournaments, remove_player_from_tournament, set_winners
 from flask_cors import CORS
-from backend.src.tournament_states import States
-from backend.src.util import is_power_of_2
+from src.tournament_states import States
+from src.util import is_power_of_2
 import secrets
 from flask_jwt_extended import create_access_token, get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
