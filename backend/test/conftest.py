@@ -1,7 +1,7 @@
 import pytest
 from test_db import conn_pool
 from api_calls import create_tournament, login, register
-from test_constants import DUMMY_INV_CODE, DELETE_PLAYERS_TABLE, DELETE_TOURNAMENTS_TABLE, DUMMY_USERNAME, DUMMY_EMAIL, DUMMY_PASSWORD, States
+from test_constants import DELETE_USERS_TABLE, DUMMY_INV_CODE, DELETE_TOURNAMENTS_TABLE, DUMMY_USERNAME, DUMMY_EMAIL, DUMMY_PASSWORD, States
 
 # clears table before and after test
 @pytest.fixture
@@ -11,24 +11,36 @@ def db_conn():
         print("Failed to connect to database.")
         assert False
     with conn.cursor() as cur:
-        cur.execute(DELETE_PLAYERS_TABLE)
         cur.execute(DELETE_TOURNAMENTS_TABLE)
         conn.commit()
 
-        yield cur
+        yield conn
 
         # teardown
-        cur.execute(DELETE_PLAYERS_TABLE)
         cur.execute(DELETE_TOURNAMENTS_TABLE)
         conn.commit()
     conn_pool.putconn(conn)
 
 # register + login user
-@pytest.fixture
-def register_login_user():
+@pytest.fixture(scope='session')
+def register_login_user(request):
     register(DUMMY_USERNAME, DUMMY_PASSWORD, DUMMY_EMAIL)
     res = login(DUMMY_USERNAME, DUMMY_PASSWORD)
-    return res.body["access_token"]
+    access_token = res.body["access_token"]
+
+    # delete registered user at end of all tests
+    def finaliser():
+        conn = conn_pool.getconn()
+        if not conn:
+            print("Failed to connect to database.")
+            assert False
+        with conn.cursor() as cur:
+            cur.execute(DELETE_USERS_TABLE)
+            conn.commit()
+        conn_pool.putconn(conn)
+    
+    request.addfinalizer(finaliser)
+    yield access_token
 
 # tournament data must be in this order
 @pytest.fixture

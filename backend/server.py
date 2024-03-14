@@ -72,6 +72,9 @@ def create_tournament():
     if data["state"] != States.SCHEDULED.value:
         raise InputError(description="Can only create a tournament in a scheduled state")
     
+    if len(data["inviteCode"]) != 6:
+        raise InputError(description="Invalid invite code length")
+    
     if not isinstance(data["isPrivate"], bool):
         raise InputError(description="Invalid isPrivate value for tournament creation")
     

@@ -1,5 +1,6 @@
 from api_calls import view_tournaments, view_tournament, create_tournament
 from test_helpers import dict_equals
+from test_constants import INPUT_ERROR, ACCESS_ERROR, OK, States
 
 TOURNAMENT_CREATION_FIELDS = ["name", "desc", "inviteCode", "state", "round", "winner", "creator", "isPrivate"]
 
@@ -13,7 +14,72 @@ def test_unauthorised_create_tournament(base_tournament, db_conn):
 
     # must be logged in to create tournament
     res = create_tournament(None, **base_tournament)    
-    assert res.status_code == 403
+    assert res.status_code == ACCESS_ERROR
+
+
+"""
+GIVEN a logged in user (access token)
+WHEN the '/create/tournament' route is requested (POST) and name field is empty
+THEN check that the response is not valid (INPUT ERROR)
+"""
+def test_invalid_name(db_conn, register_login_user, base_tournament):
+    _ = db_conn
+
+    access_token = register_login_user
+    base_tournament["name"] = ""
+    res = create_tournament(access_token, **base_tournament)
+    assert res.status_code == INPUT_ERROR
+
+
+"""
+GIVEN a logged in user (access token)
+WHEN the '/create/tournament' route is requested (POST) and inviteCode field is invalid (empty or length != 6)
+THEN check that the response is not valid (INPUT ERROR)
+"""
+def test_invalid_invite_code(db_conn, register_login_user, base_tournament):
+    _ = db_conn
+
+    access_token = register_login_user
+    base_tournament["inviteCode"] = ""
+    res = create_tournament(access_token, **base_tournament)
+    assert res.status_code == INPUT_ERROR
+
+    base_tournament["inviteCode"] = "123"
+    res = create_tournament(access_token, **base_tournament)
+    assert res.status_code == INPUT_ERROR
+
+
+"""
+GIVEN a logged in user (access token)
+WHEN the '/create/tournament' route is requested (POST) and state field is invalid (empty or not SCHEDULED)
+THEN check that the response is not valid (INPUT ERROR)
+"""
+def test_invalid_state(db_conn, register_login_user, base_tournament):
+    _ = db_conn
+
+    access_token = register_login_user
+    base_tournament["state"] = ""
+    res = create_tournament(access_token, **base_tournament)
+    assert res.status_code == INPUT_ERROR
+
+    base_tournament["state"] = States.STARTED.value
+    res = create_tournament(access_token, **base_tournament)
+    assert res.status_code == INPUT_ERROR
+
+
+"""
+GIVEN a logged in user (access token)
+WHEN the '/create/tournament' route is requested (POST) and private field is not bool (True/False)
+THEN check that the response is not valid (INPUT ERROR)
+"""
+def test_invalid_private_value(db_conn, register_login_user, base_tournament):
+    _ = db_conn
+
+    access_token = register_login_user
+    base_tournament["isPrivate"] = "True"
+    res = create_tournament(access_token, **base_tournament)
+    assert res.status_code == INPUT_ERROR
+
 
 """
 GIVEN a logged in user (access token)
@@ -28,7 +94,7 @@ def test_create_tournament(base_tournament, db_conn, register_login_user, base_t
 
     # create tournament should return tournamentId as int
     res = create_tournament(access_token, **base_tournament) 
-    assert res.status_code == 200   
+    assert res.status_code == OK
 
     id = res.body["tournamentId"]
     assert type(id) == int
