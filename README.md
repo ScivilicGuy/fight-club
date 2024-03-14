@@ -1,4 +1,4 @@
-# Fight Club
+# Tournament Management Website
 
 ## Setup Backend
 
