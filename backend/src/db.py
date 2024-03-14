@@ -1,5 +1,5 @@
 from psycopg2 import pool
-from config import load_config
+from backend.src.config import load_config
 
 """ Connect to the PostgreSQL database server """
 # connecting to the PostgreSQL server
