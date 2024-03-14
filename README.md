@@ -26,10 +26,13 @@ Finally, run the server
 ## Setup Frontend
 
 First thing to do is navigate to frontend folder and install dependencies.
+
 ```$ cd my-app```
+
 ```$ npm install```
 
 Then we open up our website using this command.
+
 ```$ npm start```
 
 
