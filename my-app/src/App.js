@@ -19,6 +19,7 @@ function App() {
   const [errorMsg, setErrorMsg] = useState('')
   const [openSuccess, setOpenSuccess] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+  console.log("APP")
 
   return (
     <BrowserRouter>

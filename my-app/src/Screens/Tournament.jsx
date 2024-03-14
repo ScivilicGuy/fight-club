@@ -19,6 +19,8 @@ function Tournament() {
     state: '',
     round: 1,
     winner: '',
+    creator: '',
+    isPrivate: false,
     players: []
   })
   const [players, setPlayers] = useState([])

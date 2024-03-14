@@ -1,16 +1,12 @@
 import pytest
-from db import conn_pool
-from api_calls import create_tournament
-from tournament_states import States
-
-DUMMY_INV_CODE = '0'
-DELETE_TOURNAMENTS_TABLE = "DELETE FROM tournaments" 
-DELETE_PLAYERS_TABLE = "DELETE FROM players"
+from test_db import conn_pool
+from api_calls import create_tournament, login, register
+from test_constants import DUMMY_INV_CODE, DELETE_PLAYERS_TABLE, DELETE_TOURNAMENTS_TABLE, DUMMY_USERNAME, DUMMY_EMAIL, DUMMY_PASSWORD, States
 
 # clears table before and after test
 @pytest.fixture
 def db_conn():
-    conn = conn_pool()
+    conn = conn_pool.getconn()
     if not conn:
         print("Failed to connect to database.")
         assert False
@@ -27,15 +23,38 @@ def db_conn():
         conn.commit()
     conn_pool.putconn(conn)
 
-# tournament data must be in order name, desc, invite_code, num_teams, format
+# register + login user
+@pytest.fixture
+def register_login_user():
+    register(DUMMY_USERNAME, DUMMY_PASSWORD, DUMMY_EMAIL)
+    res = login(DUMMY_USERNAME, DUMMY_PASSWORD)
+    return res.body["access_token"]
+
+# tournament data must be in this order
 @pytest.fixture
 def base_tournament():
     return dict(
         name="Test",
         desc="Test",
         inviteCode=DUMMY_INV_CODE,
-        state=States.SCHEDULED,
-        round=1
+        state=States.SCHEDULED.value,
+        creator=DUMMY_USERNAME,
+        isPrivate=False
+    )
+
+# full tournament dict
+@pytest.fixture
+def base_tournament_res():
+    return dict(
+        name="Test",
+        desc="Test",
+        inviteCode=DUMMY_INV_CODE,
+        state=States.SCHEDULED.value,
+        round=1,
+        winner=None,
+        creator=DUMMY_USERNAME,
+        isPrivate=False,
+        players=[]
     )
 
 @pytest.fixture
@@ -46,15 +65,17 @@ def multiple_tournaments(base_tournament):
             name="Test1", 
             desc="", 
             inviteCode=DUMMY_INV_CODE,
-            state=States.SCHEDULED,
-            round=1
+            state=States.SCHEDULED.value,
+            creator=DUMMY_USERNAME,
+            isPrivate=False
         ),
         dict(
             name="Test2",
             desc="",
             inviteCode=DUMMY_INV_CODE,
-            state=States.SCHEDULED,
-            round=1
+            state=States.SCHEDULED.value,
+            creator=DUMMY_USERNAME,
+            isPrivate=False
         )
     )
 

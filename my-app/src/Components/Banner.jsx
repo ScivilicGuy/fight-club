@@ -8,7 +8,7 @@ import { AuthContext } from '../App.js';
 
 function Banner() {
   const navigate = useNavigate()
-  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext)
+  const { isLoggedIn, setIsLoggedIn, setSuccessMsg, setOpenSuccess } = useContext(AuthContext)
 
   const viewHome = () => {
     navigate('/')
@@ -23,6 +23,8 @@ function Banner() {
       await apiFetch('/logout', 'POST')
       localStorage.removeItem(TOKEN)
       setIsLoggedIn(false)
+      setSuccessMsg('Logged out successfully!')
+      setOpenSuccess(true)
       viewHome()
     } catch (error) {
       alert(error)

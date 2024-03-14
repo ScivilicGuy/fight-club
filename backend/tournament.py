@@ -167,7 +167,7 @@ def get_created_tournaments(user: string):
 # error occurs if tournament does not exist
 def get_tournament(tournamentId):
   retrieve_tournament = '''
-    SELECT name, description, inviteCode, state, round, winner
+    SELECT name, description, inviteCode, state, round, winner, creator, isPrivate
     FROM Tournaments
     WHERE (tournamentId = %s)
   '''
@@ -192,6 +192,8 @@ def get_tournament(tournamentId):
         'state': res[3],
         'round': res[4],
         'winner': res[5],
+        'creator': res[6],
+        'isPrivate': res[7],
         'players': []
       }
 
